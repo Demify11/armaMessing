@@ -10,8 +10,8 @@ Vector3 GetEntityPosition(const UINT64& Entity);
 void Teleport(const UINT64& VisualState);
 void noSway(const UINT64& ModuleBase);
 void noRecoil(const UINT64& ModuleBase);
-Vector3 bestTarget(std::vector<Entity> Entities, std::vector<Vehicle> Vehicles, UINT64 ModuleBase);
-void HeadESP(std::vector<Entity> Entities, UINT64 World, std::vector<Vehicle> Vehicles);
+Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>&, std::vector<Vehicle> Vehicles, UINT64 ModuleBase);
+void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 World, const std::unordered_map<uintptr_t, Vehicle> vehicleMap);
 void ESP(const std::unordered_map<uintptr_t, Entity>& entityMap, uint64_t worldBase, uint64_t moduleBase);
 void GatherEntitiesAndVehiclesAtOffset(uint64_t worldBase, uint32_t offset, uint64_t localPlayer, std::unordered_map<uintptr_t, Entity>& entities, std::unordered_map<uintptr_t, Vehicle>& vehicles);
 

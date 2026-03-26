@@ -40,7 +40,7 @@ void CacheThread() {
 
         Benchmark.Stop();
 
-        printf("[CACHE] %i - Reads on Tick: %i \n", Delta >= 500, Coms->PopReads());
+        //printf("[CACHE] %i - Reads on Tick: %i \n", Delta >= 500, Coms->PopReads());
         
         auto EndTime = std::chrono::steady_clock::now();
         auto ElapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime).count();
@@ -59,6 +59,7 @@ int main() {
     DWORD Pid;
     Coms->Init();
     extern UINT64 ModuleBase;
+
     ModuleBase = Coms->GetProcessBase(L"arma3_x64.exe",&Pid);
 
     auto EProcess = Coms->GetEProcess(Pid);
@@ -69,17 +70,19 @@ int main() {
 
     g_Client->ModuleBase = ModuleBase;
 
+
+    if (Coms->ReadVirtual<WORD>(ModuleBase) != IMAGE_DOS_SIGNATURE) { printf("something wrong\n"); }
     //printf("[INFO] ModuleBase 0x%llX \n", ModuleBase);
 
     g_SigScanner->Init();
 
     extern UINT64 WorldAddr;
-    WorldAddr = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::ModBase::World);
+    WorldAddr = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::World);
 
 
     //printf("[INFO] World 0x%llX \n", World);
 
-    const auto CameraOnRef = Coms->ReadVirtual<UINT64>(WorldAddr + 0x2C38);
+    const auto CameraOnRef = Coms->ReadVirtual<UINT64>(WorldAddr + Offsets::World);
 
     auto CameraOn = Entity();
     CameraOn.m_Base = Coms->ReadVirtual<UINT64>(CameraOnRef + 0x8);

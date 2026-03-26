@@ -2,7 +2,7 @@
 
 #define ADD_OLDOFFSET(klass, name, value) namespace klass { inline __int64 name = value; }
 
-namespace Offsets {
+namespace oldOffsets {
 
 	ADD_OLDOFFSET(ModBase, World, 0x21C5140);
 		

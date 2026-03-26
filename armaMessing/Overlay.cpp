@@ -229,8 +229,8 @@ void Overlay::Draw() {
 
 
 	
-	if (GetAsyncKeyState(VK_RBUTTON)) {
-		TargetEntity = bestTarget(g_Client->GetWorld()->GetEntities(), g_Client->GetWorld()->GetVehicles() , ModuleBase);
+	if (GetAsyncKeyState(VK_LCONTROL)) {
+		TargetEntity = bestTarget(g_Client->GetWorld()->entityCache, g_Client->GetWorld()->GetVehicles() , ModuleBase);
 		//best target used to return an entity, which is better, but was changed to return an vector3 because of object slicing
 		// the function would return an entity which would cut off all the info for the vehicle.
 		
@@ -269,10 +269,10 @@ void Overlay::Draw() {
 
 	}
 	if (bHESP)
-		HeadESP(g_Client->GetWorld()->GetEntities(), WorldAddr, g_Client->GetWorld()->GetVehicles());
+		HeadESP(g_Client->m_World.entityCache, WorldAddr, g_Client->m_World.vehicleCache);
 
 	if (bEsp)
-	ESP(g_Client->m_World.entityCache, WorldAddr, ModuleBase);
+		ESP(g_Client->m_World.entityCache, WorldAddr, ModuleBase);
 
 	ImGui::EndFrame();
 	ImGui::Render();

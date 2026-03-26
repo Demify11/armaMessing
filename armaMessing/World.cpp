@@ -105,7 +105,7 @@ void World::CacheCamera(bool State) {
 
 		// Get Camera Base Address and apply. vv Checking ptr for camera.
 
-		auto CameraBase = Coms->ReadVirtual<UINT64>(Base + 0xD30);
+		auto CameraBase = Coms->ReadVirtual<UINT64>(Base + Offsets::Camera);
 
 		m_Camera.Init(CameraBase);
 
@@ -119,7 +119,7 @@ void World::CacheCamera(bool State) {
 
 void World::CacheLocalPlayer(bool State) {
 	if (State) {
-		auto buff = Coms->ReadVirtual<UINT64>(Base + 0x2C38);
+		auto buff = Coms->ReadVirtual<UINT64>(Base + Offsets::LocalPlayer);
 
 		m_LocalPlayer.m_Base = Coms->ReadVirtual<UINT64>(buff + 0x8);
 	}
@@ -167,7 +167,7 @@ void World::CacheEntityList(bool State) {
 		std::unordered_map<uintptr_t, Vehicle> newVehicles;
 
 		// Populate temporary data from game memory
-		for (uint32_t offset : { 0x1C28, 0x1CF0, 0x1DB8  }) {//0x1E80
+		for (uint32_t offset : { Offsets::EntityListNearNear, Offsets::EntityListNear, Offsets::EntityListFar  }) {//0x1E80
 			GatherEntitiesAndVehiclesAtOffset(
 				g_Client->m_World.Base,
 				offset,
@@ -186,14 +186,14 @@ void World::CacheEntityList(bool State) {
 	for (auto& [_, entity] : tempEntities) {
 		entity.Cache(true);
 	}
-	/*
+	
 	for (auto& [_, vehicle] : tempVehicles) {
 		vehicle.Cache(State);
-	}*/
+	}
 
 	// this is not atomic
 	entityCache = tempEntities; 
-	tempVehicles = tempVehicles;
+	vehicleCache = tempVehicles;
 }
 
 void World::Cache(bool State) {
@@ -210,7 +210,7 @@ void Client::Cache(bool State) {
 		// Slow cache ran every 500 ms.
 		// used to check ptrs.
 
-		auto WorldBase = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::ModBase::World);
+		auto WorldBase = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::World);
 
 		m_World.Init(WorldBase);
 	}

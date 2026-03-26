@@ -15,6 +15,7 @@ public:
 
 private:
 	std::vector<WeaponArrayListEntry> m_List;
+	WeaponArrayListEntry m_CurrentWeaponStruct;
 	std::string m_CurrWeapon;
 
 	Magazine m_Mag;

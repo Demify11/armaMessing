@@ -267,27 +267,27 @@ void noRecoil(const UINT64& ModuleBase)
 
 }
 
-Vector3 bestTarget(std::vector<Entity> Entities, std::vector<Vehicle> Vehicles, UINT64 ModuleBase)
+Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector<Vehicle> Vehicles, UINT64 ModuleBase)
 {
     Vector3 bestT;
     float closest = FLT_MAX;
 
     const auto Camera = g_Client->GetWorld()->GetCamera();
 
-    for (auto& CurrentEnt : Entities) {
+    for (auto& [base, entity] : EntityMap) {
 
-        CurrentEnt.Cache(false);    // dummy stuff.
+        entity.Cache(false);    // dummy stuff.
 
         const auto World = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2596C50);
         Vector3 Pos;
 
         //const auto Camera = Coms->Read<UINT64>(World + 0xD30);
 
-        if (CurrentEnt.GetHeadPosition().IsZero())
+        if (entity.GetHeadPosition().IsZero())
             continue;
 
-        if (CurrentEnt.dead) {
-            if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.GetHeadPosition(), Pos)) {
+        if (entity.dead) {
+            if (g_Client->GetWorld()->GetCamera()->WorldToScreen(entity.GetHeadPosition(), Pos)) {
 
                 if (!g_Client->GetWorld()->IsInFOV(Pos))
                     continue;
@@ -304,7 +304,7 @@ Vector3 bestTarget(std::vector<Entity> Entities, std::vector<Vehicle> Vehicles, 
 
                 if (distance < closest) {
                     closest = distance;
-                    bestT = CurrentEnt.GetHeadPosition();
+                    bestT = entity.GetHeadPosition();
                 }
 
                 //float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
@@ -343,9 +343,9 @@ Vector3 bestTarget(std::vector<Entity> Entities, std::vector<Vehicle> Vehicles, 
     return bestT;
 }
 
-void HeadESP(std::vector<Entity> Entities, UINT64 World, std::vector<Vehicle> Vehicles) {
+void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 World, std::unordered_map<uintptr_t, Vehicle> vehicleMap) {
     const auto pCamera = Coms->ReadVirtual<UINT64>(World + 0xD30);
-    for (Entity& entity : Entities) {
+    for (const auto& [base, entity] : entityMap) {
         Vector3 ScreenPos;
         if (WorldToScreen(pCamera, entity.GetHeadPosition(), ScreenPos)) {//maby use getheadpostion2
 
@@ -355,7 +355,7 @@ void HeadESP(std::vector<Entity> Entities, UINT64 World, std::vector<Vehicle> Ve
 
     Camera* Camera = g_Client->GetWorld()->GetCamera();
 
-    for (Vehicle& vehicle : Vehicles) {
+    for (auto& [base, vehicle] : vehicleMap) {
 
         Vector3 Position;
         Vector3 Aside;

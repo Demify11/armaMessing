@@ -8,6 +8,8 @@ private:
 
 	BYTE* m_TextBuffer;
 	UINT32 m_TextBufferOffset;
+
+	std::wstring m_Path;
 public:
 	DWORD GetArmaProcessID() {
 
@@ -33,9 +35,28 @@ public:
 		return NULL;
 	}
 
-	std::wstring GetFullPath(DWORD ProcessId) {
+	bool GetFullPath(DWORD ProcessId, std::wstring& Path) {
 
+		auto Process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, ProcessId);
 
+		if (!Process)
+			return false;
+
+		wchar_t Buffer[MAX_PATH];
+		DWORD BufferSize = MAX_PATH;
+
+		if (QueryFullProcessImageNameW(Process, 0, Buffer, &BufferSize)) {
+			Path = std::wstring(Buffer);
+
+			CloseHandle(Process);
+			return true;
+		}
+
+		CloseHandle(Process);
+
+		return false;
+
+		/*
 		HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, ProcessId);
 
 		MODULEENTRY32 Me32;
@@ -55,17 +76,17 @@ public:
 		}
 
 		CloseHandle(Snapshot);
-		return L"";
+		return L"";*/ // battle eye block this apparently
 	}
 
 	bool Init() {
 		DWORD ProcessID = GetArmaProcessID();
 
-		std::wstring FullPath = GetFullPath(ProcessID);
+		GetFullPath(ProcessID, m_Path);
 
-		printf("FullPath: %ws\n", FullPath.c_str());
+		printf("FullPath: %ws\n", m_Path.c_str());
 
-		const auto ModuleBase = (UINT64)LoadLibraryW(FullPath.c_str());
+		const auto ModuleBase = (UINT64)LoadLibraryW(m_Path.c_str());
 
 		const auto Dos = (PIMAGE_DOS_HEADER)(ModuleBase);
 

@@ -9,8 +9,17 @@ enum ScanType {
 
 namespace Offsets {
     inline uintptr_t World = 0;
-    inline uintptr_t LocalPlayer = 0;
-    inline uintptr_t EntityListNear = 0;
+    inline uintptr_t LocalPlayer = 0x2C38;
+    inline uintptr_t Camera = 0xD30;
+    inline uintptr_t EntityListNearNear = 0x1C28;
+    inline uintptr_t EntityListNear = 0x1CF0;
+    inline uintptr_t EntityListFar = 0x1DB8;
+    inline uintptr_t EntityListFarFar = 0x1E80;
+    inline uintptr_t WeaponListArray = 0xD60;
+    inline uintptr_t WeaponIndex = 0xC6C;
+    inline uintptr_t WeaponState = 0xC40;
+    inline uintptr_t Magazine = 0x48;
+
 }
 
 struct SignatureDef {
@@ -48,10 +57,11 @@ namespace Signatures {
         ADD_SIGNATURE(ModBase, World,
             "\x48\x8B\x05\x00\x00\x00\x00\x45\x33\xC0\x48\x8B\xD9\x48\x8B\x90\x00\x00\x00\x00\x48\x8B\x52\x08\xE8\x00\x00\x00\x00\x48\x8B\xC3\x48\x83\xC4\x20\x5B\xC3",
             "xxx????xxxxxxxxx????xxxxx????xxxxxxxxx", WORLD, &Offsets::World);
-        ADD_SIGNATURE(World, LocalPlayer, "\x48\x8B\x90\x00\x00\x00\x00\x48\x8B\x52\x08\xE8\x00\x00\x00\x00\x48\x8B\xC3\x48\x83\xC4\x20\x5B\xC3\xCC\x40\x53",
-            "xxx????xxxxx????xxxxxxxxxxxx", PLAYER, &Offsets::LocalPlayer);
-        ADD_SIGNATURE(World, EntityListNear, "\x4C\x63\xB6\x00\x00\x00\x00\x44\x88\x65\xD8\x4D\x85\xF6\x0F\x8E\x00\x00\x00\x00\x49\x8B\xFC\x4C\x8D\x2D\x00\x00\x00\x00\x0F\x1F\x80\x00\x00\x00\x00\x48\x8B\x86\x00\x00\x00\x00\x48\x8B\x1C\xF8",
-            "xxx????xxxxxxxxx????xxxxxx????xxx????xxx????xxxx", ENTITYLIST, &Offsets::EntityListNear);
+       // ADD_SIGNATURE(World, LocalPlayer, "\x48\x8B\x90\x00\x00\x00\x00\x48\x8B\x52\x08\xE8\x00\x00\x00\x00\x48\x8B\xC3\x48\x83\xC4\x20\x5B\xC3\xCC\x40\x53",
+       //     "xxx????xxxxx????xxxxxxxxxxxx", PLAYER, &Offsets::LocalPlayer);
+       // ADD_SIGNATURE(World, EntityListNearNear, "\x4C\x63\xB6\x00\x00\x00\x00\x44\x88\x65\xD8\x4D\x85\xF6\x0F\x8E\x00\x00\x00\x00\x49\x8B\xFC\x4C\x8D\x2D\x00\x00\x00\x00\x0F\x1F\x80\x00\x00\x00\x00\x48\x8B\x86\x00\x00\x00\x00\x48\x8B\x1C\xF8",
+         //   "xxx????xxxxxxxxx????xxxxxx????xxx????xxx????xxxx", ENTITYLIST, &Offsets::EntityListNearNear);
+       
 
 
 }

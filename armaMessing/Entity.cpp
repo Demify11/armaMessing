@@ -244,6 +244,8 @@ Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) {
 
 		HeadPosition = Vector3(_x, _y, _z);
 
+		delete[] Transform;
+
 		return &m_Driver; 
 	}
 
@@ -321,7 +323,7 @@ void LocalPlayer::CacheLocal(bool State) {
 
 void LocalPlayer::CacheWeapon(bool State) {
 	if (State) {
-		m_weapon.m_Base = m_Base + 0xC40;
+		m_weapon.m_Base = m_Base; // + 0xC40; is WeaponsStatePerson. I dont really know what this is.
 		m_weapon.Cache(State);
 	}
 }
