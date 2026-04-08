@@ -3,16 +3,24 @@
 #include <chrono>
 
 class Timer {
+
 private:
-	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartPoint;
-	std::string m_Tag = "";
-	bool m_Stopped = false;
+	const char* m_Tag;
+	int m_SampleSize;
+
+	std::chrono::steady_clock::time_point m_Start;
+
+	long long m_TotalTime = 0;
+	int m_Count = 0;
 
 public:
-	Timer();
-	Timer(std::string Tag);
-	~Timer();
+	Timer(const char* tag, int sampleSize = 100)
+		: m_Tag(tag), m_SampleSize(sampleSize) {}
 
-public:
+	void Start();
+
 	void Stop();
+	
+
+	
 };

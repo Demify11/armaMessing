@@ -18,10 +18,21 @@ void CacheThread() {
     auto LastSlowCache = std::chrono::steady_clock::now();
     int i = 0;
 
+    int Tick = 16;
+    auto NextTick = std::chrono::steady_clock::now();
+
     while (TRUE) {
+
+        NextTick += std::chrono::milliseconds(Tick);
+        auto Now = std::chrono::steady_clock::now();
+        if (Now < NextTick) {
+            std::this_thread::sleep_until(NextTick);
+        }
+
         auto StartTime = std::chrono::steady_clock::now(); // Track loop start time
 
-        auto Benchmark = Timer("CACHE");
+        static Timer CacheTimer("CACHE", 100);
+        CacheTimer.Start();
 
         auto Current = std::chrono::steady_clock::now();
         auto Delta = std::chrono::duration_cast<std::chrono::milliseconds>(Current - LastSlowCache).count();
@@ -38,7 +49,7 @@ void CacheThread() {
 
         g_Client->Cache(Delta >= 500);
 
-        Benchmark.Stop();
+        CacheTimer.Stop();
 
         //printf("[CACHE] %i - Reads on Tick: %i \n", Delta >= 500, Coms->PopReads());
         
