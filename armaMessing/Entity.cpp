@@ -1,12 +1,18 @@
 #include "framework.h"
 
 void Entity::Cache(bool State) {	// FOR EACH ENTITY YOU DO 3 READS - 100 * 3
+
+	//auto Pre = Coms->GetReads();
+
 	CacheVisualState(State);	// 2 read
 //	CacheHeadPosition(State);	// 0 read
 //	CacheFeetPosition (State);	// 0 read
-//	CacheHeadPosition2 (State);
-//	CacheGunAngles(State);	// <- this doesnt need to be cached if not local player!!!
+//	CacheHeadPosition2 (State);o cached if not local player!!!
 	CacheDead(State);			// 1 read
+
+	//auto Post = Coms->GetReads();
+
+	//printf("[DEBUG] \t-ENTITY#CACHE: %i \n", Post - Pre);
 
 }
 
@@ -202,12 +208,19 @@ void Entity::CacheVehVisualState(bool state) {
 
 void Vehicle::GetVehicleTransform(Vector3& Aside, Vector3& Up, Vector3& Front, Vector3& Position) {
 
+	// @TO:DO - Read as buffer, and then index into it see @Entity::CacheVisualState.
+	struct PageRead {
+		char pad_0000[0x100];
+	};
+
 	auto VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
 
-	Aside = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 0);
-	Up = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 1);
-	Front = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 2);
-	Position = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 3);
+	auto Page = Coms->ReadVirtual<PageRead>(VisualState);
+
+	Aside	 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 0);
+	Up		 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 1);
+	Front	 = *(Vector3*)(Page.pad_0000 + 0x0 + sizeof(Vector3) * 2);
+	Position = *(Vector3*)(Page.pad_0000 + 0x0 + sizeof(Vector3) * 3);
 
 	return;
 }

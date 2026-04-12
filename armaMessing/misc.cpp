@@ -276,9 +276,10 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
 
     for (auto& [base, entity] : EntityMap) {
 
-        entity.Cache(false);    // dummy stuff.
+        //entity.Cache(false);    // dummy stuff.
 
-        const auto World = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2596C50);
+        //const auto World = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2596C50);
+        
         Vector3 Pos;
 
         //const auto Camera = Coms->Read<UINT64>(World + 0xD30);
@@ -343,18 +344,22 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
     return bestT;
 }
 
+#include "World.h"
+
 void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 World, std::unordered_map<uintptr_t, Vehicle> vehicleMap) {
-    const auto pCamera = Coms->ReadVirtual<UINT64>(World + 0xD30);
+    
+    auto Pre = Coms->GetReads();
+
+    Camera* Camera = g_Client->GetWorld()->GetCamera();
+    
     for (const auto& [base, entity] : entityMap) {
         Vector3 ScreenPos;
-        if (WorldToScreen(pCamera, entity.GetHeadPosition(), ScreenPos)) {//maby use getheadpostion2
+        //if (WorldToScreen(pCamera, entity.GetHeadPosition(), ScreenPos)) {//maby use getheadpostion2
+        if (Camera->WorldToScreen(entity.GetHeadPosition(), ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(0, 0, 200));
         }
     }
-
-    Camera* Camera = g_Client->GetWorld()->GetCamera();
-
     for (auto& [base, vehicle] : vehicleMap) {
 
         Vector3 Position;
@@ -362,7 +367,9 @@ void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 Worl
         Vector3 Up;
         Vector3 Front;
 
-        vehicle.GetVehicleTransform(Aside, Up, Front, Position);
+        vehicle.GetVehicleTransform(Aside, Up, Front, Position);    
+        // ^^^ Takes time; - its not prepared
+        // you spend "rendering" time, doing "caching" stuff. - which is stupid
 
         Aside = Position + (Aside * 3);
         Up = Position + (Up * 3);
@@ -375,23 +382,21 @@ void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 Worl
 
         auto Draw = ImGui::GetBackgroundDrawList();
 
-        if (Camera->WorldToScreen(Aside, AsideScreen) &&
-            Camera->WorldToScreen(Up, UpScreen) &&
-            Camera->WorldToScreen(Front, FrontScreen) &&
-            Camera->WorldToScreen(Position, PositionScreen)) {
-
-            Draw->AddLine(ImVec2(PositionScreen.x, PositionScreen.y), ImVec2(AsideScreen.x, AsideScreen.y), ImColor(255,255,255));
-            Draw->AddLine(ImVec2(PositionScreen.x, PositionScreen.y), ImVec2(UpScreen.x, UpScreen.y), ImColor(255, 255, 255));
-            Draw->AddLine(ImVec2(PositionScreen.x, PositionScreen.y), ImVec2(FrontScreen.x, FrontScreen.y), ImColor(255,255,255));
-        }
-
         Vector3 ScreenPos;
         vehicle.GetTargetInVehicle(vehicle.HHeadPos);
-        if (WorldToScreen(pCamera, vehicle.HHeadPos, ScreenPos)) {
+        if (Camera->WorldToScreen(vehicle.HHeadPos, ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(200, 0, 0));
         }
+
     }
+    /*
+    */
+    
+    auto Post = Coms->GetReads();
+
+    printf("[DEBUG] \t-READS on HEADESP: %i \n", Post - Pre);
+
 }
 
 void ESP(const std::unordered_map<uintptr_t, Entity>& entityMap, uint64_t worldBase, uint64_t moduleBase) {

@@ -229,19 +229,6 @@ void Overlay::Draw() {
 
 
 	
-	if (GetAsyncKeyState(VK_LCONTROL)) {
-		TargetEntity = bestTarget(g_Client->GetWorld()->entityCache, g_Client->GetWorld()->GetVehicles() , ModuleBase);
-		//best target used to return an entity, which is better, but was changed to return an vector3 because of object slicing
-		// the function would return an entity which would cut off all the info for the vehicle.
-		
-		//CameraOn.Cache(true);
-		auto Angles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, TargetEntity, g_Client->m_World.m_LocalPlayer.GGunAngles);
-		
-		if (TargetEntity != Vector3(0,0,0)) {
-
-			g_Client->m_World.m_LocalPlayer.WriteViewAngles(Angles);
-		}
-	}
 	
 	
 
@@ -254,10 +241,13 @@ void Overlay::Draw() {
 
 
 
-
-
+	//mutex.lock();	// wait until mutex is unlocked.
+	// copy over list, and unlock
+	//mutex.unlock();
 
 	//-------------------------------------------------------------------------------------------------------
+
+	g_Client->GetWorld()->GetCamera()->Cache(false);
 
 	if (bNoRecoil) {
 		noRecoil(ModuleBase);//cache this
@@ -267,12 +257,40 @@ void Overlay::Draw() {
 	}
 	if (bAimBot) {
 
+		if (GetAsyncKeyState(VK_LCONTROL)) {
+			TargetEntity = bestTarget(
+				g_Client->GetWorld()->entityCache,
+				g_Client->GetWorld()->GetVehicles(),
+				ModuleBase
+			);
+
+			//best target used to return an entity, which is better, but was changed to return an vector3 because of object slicing
+			// the function would return an entity which would cut off all the info for the vehicle.
+
+			//CameraOn.Cache(true);
+			auto Angles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, TargetEntity, g_Client->m_World.m_LocalPlayer.GGunAngles);
+
+			if (TargetEntity != Vector3(0, 0, 0)) {
+				g_Client->m_World.m_LocalPlayer.WriteViewAngles(Angles);
+			}
+		}
+
 	}
 	if (bHESP)
 		HeadESP(g_Client->m_World.entityCache, WorldAddr, g_Client->m_World.vehicleCache);
 
 	if (bEsp)
 		ESP(g_Client->m_World.entityCache, WorldAddr, ModuleBase);
+
+	char Text[100];
+
+	sprintf_s(Text, "FPS: %.1f", ImGui::GetIO().Framerate);
+
+	ImGui::GetBackgroundDrawList()->AddText(
+		ImVec2(50, 50),
+		ImColor(255, 255, 255, 255),
+		Text
+	);
 
 	ImGui::EndFrame();
 	ImGui::Render();

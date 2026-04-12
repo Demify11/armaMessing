@@ -21,6 +21,8 @@ void CacheThread() {
     int Tick = 16;
     auto NextTick = std::chrono::steady_clock::now();
 
+    int TicksPerSecond = 0;
+
     while (TRUE) {
 
         NextTick += std::chrono::milliseconds(Tick);
@@ -34,32 +36,44 @@ void CacheThread() {
         static Timer CacheTimer("CACHE", 100);
         CacheTimer.Start();
 
-        auto Current = std::chrono::steady_clock::now();
-        auto Delta = std::chrono::duration_cast<std::chrono::milliseconds>(Current - LastSlowCache).count();
+        bool doSlowCache = false;
+        auto Now_2 = std::chrono::steady_clock::now();
 
-        if (Delta >= 500) {
-            LastSlowCache += std::chrono::milliseconds(500);  // Maintain fixed step
-            i++;
+        while (Now_2 - LastSlowCache >= std::chrono::milliseconds(500)) {
 
+            printf("[DEBUG] AVG. UPS %i \n", TicksPerSecond * 2);
+
+            LastSlowCache += std::chrono::milliseconds(500);
+            doSlowCache = true;
+
+            TicksPerSecond = 0;
+        }
+
+        TicksPerSecond++;
+
+        /*
+        i++;
             if (i == 50) {
                // g_Client->m_World.pushclearpls();
                 i = 0;
             }
-        }
+            */
+     
 
-        g_Client->Cache(Delta >= 500);
+        g_Client->Cache(doSlowCache);
 
         CacheTimer.Stop();
 
-        //printf("[CACHE] %i - Reads on Tick: %i \n", Delta >= 500, Coms->PopReads());
-        
+#if _DEBUG
+        printf("[CACHE] %i - Reads on Tick: %i \n", doSlowCache, Coms->PopReads());
+#endif
+
         auto EndTime = std::chrono::steady_clock::now();
         auto ElapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime).count();
 
-        int SleepDuration = 1 - static_cast<int>(ElapsedMs); // Ensure at least 1ms sleep
-
-        if (SleepDuration > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(SleepDuration));
+        // If we're lagging behind, resync to avoid spiral of death
+        if (ElapsedMs > Tick) {
+            NextTick = std::chrono::steady_clock::now();
         }
     }
 }

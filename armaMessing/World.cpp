@@ -191,9 +191,34 @@ void World::CacheEntityList(bool State) {
 		vehicle.Cache(State);
 	}
 
+	/*
+	Entities:
+	- Players
+	- Animals
+	- Vehicles
+	
+	I only wanna do operations on Vehicles; 
+
+	for(auto& Entity: entities) {
+		if(!Entity.IsVehicle())
+			continue;
+
+		...
+	}
+
+	Instead of
+
+	for(auto& Vehicle: vehilces) { 
+		... 
+	}
+
+	*/
+
 	// this is not atomic
-	entityCache = tempEntities; 
+	//mutex.lock();	- wait until we have exclusive access
+	entityCache = tempEntities;	
 	vehicleCache = tempVehicles;
+	//mutex.unlock(); - free up and let other threads use the resources :)
 }
 
 void World::Cache(bool State) {

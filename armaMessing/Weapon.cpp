@@ -45,6 +45,9 @@ void Weapon::TraverseString(bool State) {
 	if (State) {
 		if (m_Index >= 0x0 && m_Index < 0x3E8) {
 
+			if (m_List.size() < m_Index)
+				return;	// fuck.
+
 			m_CurrentWeaponStruct = m_List[m_Index];
 
 			UINT64 StringBuff = Coms->ReadVirtual<UINT64>(m_CurrentWeaponStruct.WeaponType + 0x30);
