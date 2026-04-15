@@ -206,7 +206,7 @@ void Entity::CacheVehVisualState(bool state) {
 
 ////////////////////////////////////////////////////////////////
 
-void Vehicle::GetVehicleTransform(Vector3& Aside, Vector3& Up, Vector3& Front, Vector3& Position) {
+void Vehicle::GetVehicleTransform(Vector3& Aside, Vector3& Up, Vector3& Front, Vector3& Position) { //in future make part of caching
 
 	// @TO:DO - Read as buffer, and then index into it see @Entity::CacheVisualState.
 	struct PageRead {
@@ -219,14 +219,14 @@ void Vehicle::GetVehicleTransform(Vector3& Aside, Vector3& Up, Vector3& Front, V
 
 	Aside	 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 0);
 	Up		 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 1);
-	Front	 = *(Vector3*)(Page.pad_0000 + 0x0 + sizeof(Vector3) * 2);
-	Position = *(Vector3*)(Page.pad_0000 + 0x0 + sizeof(Vector3) * 3);
+	Front	 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 2);	//anton did 0x0 for this, idk i think its wrong
+	Position = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 3);	//anton did 0x0 for this, idk i think its wrong
 
 	return;
 }
 
 /* returns null if there's no target in here, REMEMBER TO DO NULL PTR CHECK OR CRASH ! */
-Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) {
+Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) { //in future make part of caching
 
 	// What type of vehicle am i?
 
@@ -241,11 +241,22 @@ Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) {
 		// - do matrix multiplication with the visualstate transform
 		auto VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
 
+		struct PageRead {
+			Vector3 right;   
+			Vector3 up;      
+			Vector3 forward; 
+			Vector3 pos;     
+		};
+
 		if (!VisualState)
 			return NULL;
 
-		float* Transform = new float[12];
-		
+		auto Page = Coms->ReadVirtual<PageRead>(VisualState + 0x8);
+		/*
+		* 
+		* 
+		* float* Transform = new float[12];
+		* 
 		*(Vector3*)&Transform[0] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 0);
 		*(Vector3*)&Transform[3] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 1);
 		*(Vector3*)&Transform[6] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 2);
@@ -255,9 +266,16 @@ Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) {
 		float _y = ModelPos.x * Transform[1] + ModelPos.y * Transform[4] + ModelPos.z * Transform[7] + Transform[10];
 		float _z = ModelPos.x * Transform[2] + ModelPos.y * Transform[5] + ModelPos.z * Transform[8] + Transform[11];
 
-		HeadPosition = Vector3(_x, _y, _z);
+		
 
-		delete[] Transform;
+		delete[] Transform;*/
+		float _x = ModelPos.x * Page.right.x +ModelPos.y * Page.up.x +ModelPos.z * Page.forward.x + Page.pos.x;
+
+		float _y = ModelPos.x * Page.right.y +ModelPos.y * Page.up.y +ModelPos.z * Page.forward.y + Page.pos.y;
+
+		float _z = ModelPos.x * Page.right.z + ModelPos.y * Page.up.z +ModelPos.z * Page.forward.z +Page.pos.z;
+
+		HeadPosition = Vector3(_x, _y, _z);
 
 		return &m_Driver; 
 	}
