@@ -234,8 +234,12 @@ Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) { //in future make pa
 		return NULL;
 
 	/* only works for driver.*/
-	if (g_HeadLookup.find(CarName) != g_HeadLookup.end()) {
-		auto ModelPos = g_HeadLookup.at(CarName);
+	auto it = g_HeadLookup.find(CarName);
+	if (it == g_HeadLookup.end())
+		return &m_Driver;
+
+		//auto ModelPos = g_HeadLookup.at(CarName);
+		Vector3 ModelPos = it->second;
 		
 		// resolve HeadPos
 		// - do matrix multiplication with the visualstate transform
@@ -278,7 +282,7 @@ Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) { //in future make pa
 		HeadPosition = Vector3(_x, _y, _z);
 
 		return &m_Driver; 
-	}
+	
 
 	return &m_Driver;
 }
