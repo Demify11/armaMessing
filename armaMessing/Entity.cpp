@@ -206,27 +206,14 @@ void Entity::CacheVehVisualState(bool state) {
 
 ////////////////////////////////////////////////////////////////
 
-void Vehicle::GetVehicleTransform(Vector3& Aside, Vector3& Up, Vector3& Front, Vector3& Position) { //in future make part of caching
+void Vehicle::CacheTransform() {
 
-	// @TO:DO - Read as buffer, and then index into it see @Entity::CacheVisualState.
-	struct PageRead {
-		char pad_0000[0x100];
-	};
 
-	auto VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
 
-	auto Page = Coms->ReadVirtual<PageRead>(VisualState);
-
-	Aside	 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 0);
-	Up		 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 1);
-	Front	 = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 2);	//anton did 0x0 for this, idk i think its wrong
-	Position = *(Vector3*)(Page.pad_0000 + 0x8 + sizeof(Vector3) * 3);	//anton did 0x0 for this, idk i think its wrong
-
-	return;
 }
 
 /* returns null if there's no target in here, REMEMBER TO DO NULL PTR CHECK OR CRASH ! */
-Entity* Vehicle::GetTargetInVehicle(Vector3& HeadPosition) { //in future make part of caching
+Entity* Vehicle::GetTargetInVehicleTransform(Vector3& HeadPosition) { //in future make part of caching
 
 	// What type of vehicle am i?
 

@@ -324,7 +324,7 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
         const auto Camera = Coms->ReadVirtual<UINT64>(World + 0xD30);
 
         //     if (!CurrentEnt.GetDead()) {
-        CurrentEnt.GetTargetInVehicle(CurrentEnt.HHeadPos);
+        CurrentEnt.GetTargetInVehicleTransform(CurrentEnt.HHeadPos);
         if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.HHeadPos, Pos)) {
 
             Vector3 viewPort = Coms->ReadVirtual<Vector3>(Camera + 0x58);
@@ -362,36 +362,16 @@ void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 Worl
     }
     for (auto& [base, vehicle] : vehicleMap) {
 
-        Vector3 Position;
-        Vector3 Aside;
-        Vector3 Up;
-        Vector3 Front;
-
-        vehicle.GetVehicleTransform(Aside, Up, Front, Position);    
-        // ^^^ Takes time; - its not prepared
-        // you spend "rendering" time, doing "caching" stuff. - which is stupid
-
-        Aside = Position + (Aside * 3);
-        Up = Position + (Up * 3);
-        Front = Position + (Front * 3);
-
-        Vector3 AsideScreen;
-        Vector3 UpScreen;
-        Vector3 FrontScreen;
-        Vector3 PositionScreen;
-
         auto Draw = ImGui::GetBackgroundDrawList();
 
         Vector3 ScreenPos;
-        vehicle.GetTargetInVehicle(vehicle.HHeadPos);
+        vehicle.GetTargetInVehicleTransform(vehicle.HHeadPos);
         if (Camera->WorldToScreen(vehicle.HHeadPos, ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(200, 0, 0));
         }
 
     }
-    /*
-    */
     
     auto Post = Coms->GetReads();
 

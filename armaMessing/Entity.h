@@ -335,8 +335,9 @@ public:
 
 public:
 
-	void GetVehicleTransform(Vector3& Aside, Vector3& Up, Vector3& Front, Vector3& Position);
-	Entity* GetTargetInVehicle(Vector3& HeadPosition); // use this for aimbot selection
+	
+
+	Entity* GetTargetInVehicleTransform(Vector3& HeadPosition); // use this for aimbot selection
 		
 private:
 	void CacheVehicleVisualState(bool State);
@@ -344,6 +345,7 @@ private:
 private:
 	void CacheCleanName(bool State);
 	void CacheDriver(bool State);
+	void CacheTransform();
 
 public:
 	void Cache(bool State);
