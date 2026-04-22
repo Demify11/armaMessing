@@ -194,15 +194,12 @@ public:
 
 	void Cache(bool State);
 	std::string GetType(bool State);
-	Vector3 FeetPosition();
 	Vector3 HeadPosition2(UINT64 ModuleBase);
 	Vector3 GunAngles();
 	Vector3 HeadPosition();
 	void WriteViewAngles(Vector3 Angles);
 	Vector3 GetFeetPosition() const;
 	Vector3 GetHeadPosition() const;
-
-	void CacheVehVisualState(bool State);
 };
 
 class Local : public Entity {
@@ -321,10 +318,20 @@ static std::unordered_map<std::string, const Vector3> g_HeadLookup = {
 
 class Vehicle : public Entity {
 public:
+	struct PageRead {
+		Vector3 right;
+		Vector3 up;
+		Vector3 forward;
+		Vector3 pos;
+	};
+
 	int ga = 1; // haram
 	UINT64 D0VisualState = 0;
-	UINT64 VVisualState = 0;
-	Vector3 HHeadPos;
+	UINT64 VehVisualState = 0;
+	PageRead VehVisualPage;
+
+	Vector3 VehHeadPos;
+	Vector3 m_TransformedHeadPos;
 
 	std::string CarName = "";
 
@@ -337,7 +344,7 @@ public:
 
 	
 
-	Entity* GetTargetInVehicleTransform(Vector3& HeadPosition); // use this for aimbot selection
+	Entity* GetTargetInVehicleTransform(); // use this for aimbot selection
 		
 private:
 	void CacheVehicleVisualState(bool State);

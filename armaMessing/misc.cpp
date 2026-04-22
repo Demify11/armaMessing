@@ -324,8 +324,8 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
         const auto Camera = Coms->ReadVirtual<UINT64>(World + 0xD30);
 
         //     if (!CurrentEnt.GetDead()) {
-        CurrentEnt.GetTargetInVehicleTransform(CurrentEnt.HHeadPos);
-        if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.HHeadPos, Pos)) {
+        CurrentEnt.GetTargetInVehicleTransform();
+        if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.m_TransformedHeadPos, Pos)) {
 
             Vector3 viewPort = Coms->ReadVirtual<Vector3>(Camera + 0x58);
             Vector3 centre;
@@ -335,7 +335,7 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
             float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
             if (distance < closest) {
                 closest = distance;
-                bestT = CurrentEnt.HHeadPos;
+                bestT = CurrentEnt.m_TransformedHeadPos;
             }
             //}
         }
@@ -365,8 +365,8 @@ void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 Worl
         auto Draw = ImGui::GetBackgroundDrawList();
 
         Vector3 ScreenPos;
-        vehicle.GetTargetInVehicleTransform(vehicle.HHeadPos);
-        if (Camera->WorldToScreen(vehicle.HHeadPos, ScreenPos)) {
+        vehicle.GetTargetInVehicleTransform();
+        if (Camera->WorldToScreen(vehicle.m_TransformedHeadPos, ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(200, 0, 0));
         }

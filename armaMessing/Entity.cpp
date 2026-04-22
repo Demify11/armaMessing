@@ -111,11 +111,6 @@ std::string Entity::GetType(bool State) {
 		return Coms->ReadString(StringEntry + 0x10);
 }
 
-Vector3 Entity::FeetPosition() {
-	VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x190);
-	return FeetPos = Coms->ReadVirtual<Vector3>(VisualState + 0x2c);
-
-}
 
 Vector3 Entity::HeadPosition2(UINT64 ModuleBase) {	// dont use this. only for local player
 	//const auto VisualState = Coms->Read(Address + 0xD0);
@@ -195,14 +190,6 @@ void Entity::WriteViewAngles(Vector3 Angles) {
 	Coms->WriteVirtual<float>(VisualState1 + 0xB4, Angles.z);
 }
 
-void Entity::CacheVehVisualState(bool state) {
-	m_VisualState2 = Coms->ReadVirtual<UINT64>(m_Base + 0xD0);
-
-	HeadPos = Coms->ReadVirtual<Vector3>(m_VisualState2 + 0x2c);
-
-	//HeadPos.y += 0.62f;
-
-}
 
 ////////////////////////////////////////////////////////////////
 
@@ -213,7 +200,7 @@ void Vehicle::CacheTransform() {
 }
 
 /* returns null if there's no target in here, REMEMBER TO DO NULL PTR CHECK OR CRASH ! */
-Entity* Vehicle::GetTargetInVehicleTransform(Vector3& HeadPosition) { //in future make part of caching
+Entity* Vehicle::GetTargetInVehicleTransform() { //in future make part of caching
 
 	// What type of vehicle am i?
 
@@ -227,23 +214,21 @@ Entity* Vehicle::GetTargetInVehicleTransform(Vector3& HeadPosition) { //in futur
 
 		//auto ModelPos = g_HeadLookup.at(CarName);
 		Vector3 ModelPos = it->second;
-		
-		// resolve HeadPos
-		// - do matrix multiplication with the visualstate transform
-		auto VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
 
-		struct PageRead {
-			Vector3 right;   
-			Vector3 up;      
-			Vector3 forward; 
-			Vector3 pos;     
-		};
-
-		if (!VisualState)
+		if (!VehVisualState)
 			return NULL;
 
-		auto Page = Coms->ReadVirtual<PageRead>(VisualState + 0x8);
 		/*
+		// resolve HeadPos
+		// - do matrix multiplication with the visualstate transform
+		//auto VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
+		//auto VisualState = VehVisualState;
+
+		
+		
+
+		//auto Page = Coms->ReadVirtual<PageRead>(VisualState + 0x8);
+		
 		* 
 		* 
 		* float* Transform = new float[12];
@@ -260,13 +245,13 @@ Entity* Vehicle::GetTargetInVehicleTransform(Vector3& HeadPosition) { //in futur
 		
 
 		delete[] Transform;*/
-		float _x = ModelPos.x * Page.right.x +ModelPos.y * Page.up.x +ModelPos.z * Page.forward.x + Page.pos.x;
+		float _x = ModelPos.x * VehVisualPage.right.x +ModelPos.y * VehVisualPage.up.x +ModelPos.z * VehVisualPage.forward.x + VehVisualPage.pos.x;
 
-		float _y = ModelPos.x * Page.right.y +ModelPos.y * Page.up.y +ModelPos.z * Page.forward.y + Page.pos.y;
+		float _y = ModelPos.x * VehVisualPage.right.y +ModelPos.y * VehVisualPage.up.y +ModelPos.z * VehVisualPage.forward.y + VehVisualPage.pos.y;
 
-		float _z = ModelPos.x * Page.right.z + ModelPos.y * Page.up.z +ModelPos.z * Page.forward.z +Page.pos.z;
+		float _z = ModelPos.x * VehVisualPage.right.z + ModelPos.y * VehVisualPage.up.z +ModelPos.z * VehVisualPage.forward.z + VehVisualPage.pos.z;
 
-		HeadPosition = Vector3(_x, _y, _z);
+		m_TransformedHeadPos = Vector3(_x, _y, _z);
 
 		return &m_Driver; 
 	
@@ -286,8 +271,14 @@ void aimbot() {
 */
 
 void Vehicle::CacheVehicleVisualState(bool state) {
-	VVisualState = Coms->ReadVirtual<UINT64>(m_Base + 0xD0);
-	HHeadPos = Coms->ReadVirtual<Vector3>(VVisualState + 0x2c);
+
+	if (state) {
+
+		VehVisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
+		VehHeadPos = Coms->ReadVirtual<Vector3>(VehVisualState + 0x2c); //used to be HHeadPos
+	}
+
+	VehVisualPage = Coms->ReadVirtual<PageRead>(VehVisualState + 0x8);
 }
 
 void Vehicle::CacheCleanName(bool State) {
@@ -299,7 +290,7 @@ void Vehicle::CacheCleanName(bool State) {
 		if (!EntityType)
 			return;
 
-		auto CleanNameEntry = Coms->ReadVirtual<UINT64>(EntityType + 0x13C8);
+		auto CleanNameEntry = Coms->ReadVirtual<UINT64>(EntityType + 0x13B8);
 
 		auto CleanNameSize = Coms->ReadVirtual<INT32>(CleanNameEntry + 0x8);
 
@@ -311,7 +302,7 @@ void Vehicle::CacheDriver(bool State) {
 
 	if (State) {
 
-		auto Driver = Coms->ReadVirtual<UINT64>(m_Base + 0xD70);
+		auto Driver = Coms->ReadVirtual<UINT64>(m_Base + 0xE78); //Was D70, I think its acutally...
 
 		if (Driver == 0x0) {
 			HasDriver = false;
@@ -323,7 +314,6 @@ void Vehicle::CacheDriver(bool State) {
 	}
 
 	m_Driver.Cache(State);
-	m_Driver.CacheVehVisualState(State);
 }
 
 
