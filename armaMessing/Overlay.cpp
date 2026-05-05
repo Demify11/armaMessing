@@ -259,7 +259,7 @@ void Overlay::Draw() {
 
 		if (GetAsyncKeyState(VK_LCONTROL)) {
 			TargetEntity = bestTarget(
-				g_Client->GetWorld()->entityCache,
+				g_Client->m_World.m_EntityManager.GetEntities(),
 				g_Client->GetWorld()->GetVehicles(),
 				ModuleBase
 			);
@@ -277,10 +277,10 @@ void Overlay::Draw() {
 
 	}
 	if (bHESP)
-		HeadESP(g_Client->m_World.entityCache, WorldAddr, g_Client->m_World.vehicleCache);
+		HeadESP(g_Client->m_World.m_EntityManager.GetEntities(), WorldAddr, g_Client->m_World.m_EntityManager.GetVehicles());
 
 	if (bEsp)
-		ESP(g_Client->m_World.entityCache, WorldAddr, ModuleBase);
+		ESP(g_Client->m_World.m_EntityManager.GetEntities(), WorldAddr, ModuleBase);
 
 	char Text[100];
 

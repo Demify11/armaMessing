@@ -160,15 +160,44 @@ struct Vector2 {
 	float x, t;
 };
 
+enum class EntityType {
+	Unknown,
+	Player,
+	Animal,
+	Vehicle,
+	Junk
+};
+
+struct Entity;
+
+struct VehicleData {
+
+	
+
+	struct PageRead {
+		Vector3 right;
+		Vector3 up;
+		Vector3 forward;
+		Vector3 pos;
+	};
+
+	UINT64 VehVisualState = 0;
+	PageRead VehVisualPage;
+
+	Vector3 VehHeadPos;
+	Vector3 m_TransformedHeadPos;
+
+	std::string CarName = "";
+
+	bool HasDriver = false;
+
+	Entity* m_Driver = nullptr;	// null if there's none!!!!
+	std::vector<Entity*> m_Passengers;	// same heree ^^
+
+};
+
 class Entity {
 private:
-	/*
-	UINT64 Address = 0; make variables private and make getters and setters.
-	bool dead;
-	Vector3 HeadPos;
-	Vector3 HeadPos2;
-	Vector3 FeetPos;
-	UINT64 VisualState = 0;*/
 
 	void CacheVisualState(bool State);
 	void CacheDead(bool State);
@@ -176,8 +205,6 @@ private:
 	void CacheHeadPosition2(bool State);
 	void CacheHeadPosition(bool State);	
 	
-
-	// To know where the entity is placed in arma 3 memory. We hold the address in a value
 public:
 	UINT64 m_Base = 0;
 	bool dead;
@@ -188,18 +215,34 @@ public:
 	UINT64 m_VisualState2;
 	Vector3 VehicleHeadPos;
 
+	EntityType type = EntityType::Unknown;
+	bool classified = false;
+
 	bool GetDead();
-
-	// I'll make a quick thing to get entities.
-
 	void Cache(bool State);
+	void WriteViewAngles(Vector3 Angles);
+	void Classify();
 	std::string GetType(bool State);
 	Vector3 HeadPosition2(UINT64 ModuleBase);
 	Vector3 GunAngles();
 	Vector3 HeadPosition();
-	void WriteViewAngles(Vector3 Angles);
 	Vector3 GetFeetPosition() const;
 	Vector3 GetHeadPosition() const;
+
+	std::optional<VehicleData> vehicle;
+
+	Entity* GetTargetInVehicleTransform(); // use this for aimbot selection
+
+private:
+	void CacheVehicleVisualState(bool State);
+
+private:
+	void CacheCleanName(bool State);
+	void CacheDriver(bool State);
+
+public:
+	void VehicleCache(bool State);
+
 };
 
 class Local : public Entity {
@@ -316,47 +359,6 @@ static std::unordered_map<std::string, const Vector3> g_HeadLookup = {
 		{"Water Scooter", {0.00244141, 0.163588, 0.325972}},
 };
 
-class Vehicle : public Entity {
-public:
-	struct PageRead {
-		Vector3 right;
-		Vector3 up;
-		Vector3 forward;
-		Vector3 pos;
-	};
-
-	int ga = 1; // haram
-	UINT64 D0VisualState = 0;
-	UINT64 VehVisualState = 0;
-	PageRead VehVisualPage;
-
-	Vector3 VehHeadPos;
-	Vector3 m_TransformedHeadPos;
-
-	std::string CarName = "";
-
-	bool HasDriver = false;
-
-	Entity m_Driver;	// null if there's none!!!!
-	std::vector<Entity> m_Passengers;	// same heree ^^
-
-public:
-
-	
-
-	Entity* GetTargetInVehicleTransform(); // use this for aimbot selection
-		
-private:
-	void CacheVehicleVisualState(bool State);
-
-private:
-	void CacheCleanName(bool State);
-	void CacheDriver(bool State);
-	void CacheTransform();
-
-public:
-	void Cache(bool State);
-};
 
 class LocalPlayer : public Entity {
 

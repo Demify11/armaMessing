@@ -30,17 +30,6 @@ the first four are, so you could in theory do smth like this.
 
 */
 
-/*
-The battle plan
-
-- Make an easy way to get entities from an entitylist.
-- Cache Entities into world.
-- Make an Entity Class
-- Have the Entity class being able to cache it's value
-- Have a VisualState class that has the ability to cache it's value
-- Make a getter for VisualState in Entity. (Look at GetWorld() in Client to get an idea)
-
-*/
 
 class Camera {
 public:
@@ -62,17 +51,18 @@ public:
 
 class World {
 private:
-	UINT64 Base = 0;
+	
 	Camera m_Camera;
 	std::vector<Entity>Entities;
-	std::vector<Vehicle>Vehicles;
+	std::vector<Entity>Vehicles;
 public:
+	EntityManager m_EntityManager;
+
 	std::unordered_map<uintptr_t, Entity> entityCache;
-	std::unordered_map<uintptr_t, Vehicle> vehicleCache;
-private:
+	std::unordered_map<uintptr_t, Entity> vehicleCache;
 
 	UINT64 localPlayer = 0;
-	
+	UINT64 m_Base = 0;
 
 public:
 	LocalPlayer m_LocalPlayer;
@@ -80,7 +70,7 @@ public:
 	auto GetEntities() { return Entities; }
 	auto GetVehicles() { return Vehicles; }
 	auto GetBase() -> UINT64 {
-		return Base;
+		return m_Base;
 	}
 
 private:

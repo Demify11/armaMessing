@@ -13,6 +13,8 @@ void Entity::Cache(bool State) {	// FOR EACH ENTITY YOU DO 3 READS - 100 * 3
 	//auto Post = Coms->GetReads();
 
 	//printf("[DEBUG] \t-ENTITY#CACHE: %i \n", Post - Pre);
+	if (vehicle)
+		VehicleCache(State);
 
 }
 
@@ -190,32 +192,51 @@ void Entity::WriteViewAngles(Vector3 Angles) {
 	Coms->WriteVirtual<float>(VisualState1 + 0xB4, Angles.z);
 }
 
+void Entity::Classify() {
+	if (classified)
+		return;
+
+	const auto catBuf = Coms->ReadVirtual<uint64_t>(m_Base + 0x150);
+	if (!catBuf) return;
+
+	const auto catPtr = Coms->ReadVirtual<uint64_t>(catBuf + 0xD0);
+	if (!catPtr) return;
+
+	const std::string category = Coms->ReadString(catPtr + 0x10);
+
+	if (category == "carx") {
+		type = EntityType::Vehicle;
+	}
+	if (category == "soldier") {
+		type = EntityType::Player;
+	}
+	else {
+		type = EntityType::Junk;
+	}
+
+	classified = true;
+}
 
 ////////////////////////////////////////////////////////////////
 
-void Vehicle::CacheTransform() {
-
-
-
-}
 
 /* returns null if there's no target in here, REMEMBER TO DO NULL PTR CHECK OR CRASH ! */
-Entity* Vehicle::GetTargetInVehicleTransform() { //in future make part of caching
+Entity* Entity::GetTargetInVehicleTransform() { //in future make part of caching
 
 	// What type of vehicle am i?
 
-	if (m_Driver.m_Base == 0)
+	if (vehicle->m_Driver->m_Base == 0)
 		return NULL;
 
 	/* only works for driver.*/
-	auto it = g_HeadLookup.find(CarName);
+	auto it = g_HeadLookup.find(vehicle->CarName);
 	if (it == g_HeadLookup.end())
-		return &m_Driver;
+		return vehicle->m_Driver;
 
 		//auto ModelPos = g_HeadLookup.at(CarName);
 		Vector3 ModelPos = it->second;
 
-		if (!VehVisualState)
+		if (!vehicle->VehVisualState)
 			return NULL;
 
 		/*
@@ -245,18 +266,18 @@ Entity* Vehicle::GetTargetInVehicleTransform() { //in future make part of cachin
 		
 
 		delete[] Transform;*/
-		float _x = ModelPos.x * VehVisualPage.right.x +ModelPos.y * VehVisualPage.up.x +ModelPos.z * VehVisualPage.forward.x + VehVisualPage.pos.x;
+		float _x = ModelPos.x * vehicle->VehVisualPage.right.x +ModelPos.y * vehicle->VehVisualPage.up.x +ModelPos.z * vehicle->VehVisualPage.forward.x + vehicle->VehVisualPage.pos.x;
 
-		float _y = ModelPos.x * VehVisualPage.right.y +ModelPos.y * VehVisualPage.up.y +ModelPos.z * VehVisualPage.forward.y + VehVisualPage.pos.y;
+		float _y = ModelPos.x * vehicle->VehVisualPage.right.y +ModelPos.y * vehicle->VehVisualPage.up.y +ModelPos.z * vehicle->VehVisualPage.forward.y + vehicle->VehVisualPage.pos.y;
 
-		float _z = ModelPos.x * VehVisualPage.right.z + ModelPos.y * VehVisualPage.up.z +ModelPos.z * VehVisualPage.forward.z + VehVisualPage.pos.z;
+		float _z = ModelPos.x * vehicle->VehVisualPage.right.z + ModelPos.y * vehicle->VehVisualPage.up.z +ModelPos.z * vehicle->VehVisualPage.forward.z + vehicle->VehVisualPage.pos.z;
 
-		m_TransformedHeadPos = Vector3(_x, _y, _z);
+		vehicle->m_TransformedHeadPos = Vector3(_x, _y, _z);
 
-		return &m_Driver; 
+		return vehicle->m_Driver;
 	
 
-	return &m_Driver;
+	return vehicle->m_Driver;
 }
 
 /*
@@ -270,18 +291,18 @@ void aimbot() {
 }
 */
 
-void Vehicle::CacheVehicleVisualState(bool state) {
+void Entity::CacheVehicleVisualState(bool state) {
 
 	if (state) {
 
-		VehVisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
-		VehHeadPos = Coms->ReadVirtual<Vector3>(VehVisualState + 0x2c); //used to be HHeadPos
+		vehicle->VehVisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
+		vehicle->VehHeadPos = Coms->ReadVirtual<Vector3>(vehicle->VehVisualState + 0x2c); //used to be HHeadPos
 	}
 
-	VehVisualPage = Coms->ReadVirtual<PageRead>(VehVisualState + 0x8);
+	vehicle->VehVisualPage = Coms->ReadVirtual<VehicleData::PageRead>(vehicle->VehVisualState + 0x8);
 }
 
-void Vehicle::CacheCleanName(bool State) {
+void Entity::CacheCleanName(bool State) {
 
 	if (State) {
 
@@ -294,30 +315,30 @@ void Vehicle::CacheCleanName(bool State) {
 
 		auto CleanNameSize = Coms->ReadVirtual<INT32>(CleanNameEntry + 0x8);
 
-		CarName = Coms->ReadString(CleanNameEntry+0x10);
+		vehicle->CarName = Coms->ReadString(CleanNameEntry+0x10);
 	}
 }
 
-void Vehicle::CacheDriver(bool State) {
+void Entity::CacheDriver(bool State) {
 
 	if (State) {
 
 		auto Driver = Coms->ReadVirtual<UINT64>(m_Base + 0xE78); //Was D70, I think its acutally...
 
 		if (Driver == 0x0) {
-			HasDriver = false;
+			vehicle->HasDriver = false;
 			return;
 		}
 
-		m_Driver.m_Base = Driver;
+		vehicle->m_Driver->m_Base = Driver;
 
 	}
 
-	m_Driver.Cache(State);
+	vehicle->m_Driver->Cache(State);
 }
 
 
-void Vehicle::Cache(bool State) {
+void Entity::VehicleCache(bool State) {
 
 	if (!m_Base)
 		return;
@@ -329,7 +350,7 @@ void Vehicle::Cache(bool State) {
 
 void LocalPlayer::CacheLocal(bool State) {
 	Cache(State); //it doesnt cache the whole
-	CacheWeapon(State);
+	//CacheWeapon(State);
 	CacheGunAngles(State);
 }
 

@@ -35,6 +35,7 @@
 #include "Magazine.h"
 #include "Weapon.h"
 #include "Entity.h"
+#include "EntityManager.h"
 #include "World.h"
 #include "misc.h"
 #include "SigScanner.h"

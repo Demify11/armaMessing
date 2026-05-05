@@ -94,7 +94,7 @@ void Camera::Cache(bool State) {
 
 void World::Init(UINT64 _Base) {
 
-	Base = _Base;
+	m_Base = _Base;
 
 }
 
@@ -105,7 +105,7 @@ void World::CacheCamera(bool State) {
 
 		// Get Camera Base Address and apply. vv Checking ptr for camera.
 
-		auto CameraBase = Coms->ReadVirtual<UINT64>(Base + Offsets::Camera);
+		auto CameraBase = Coms->ReadVirtual<UINT64>(m_Base + Offsets::Camera);
 
 		m_Camera.Init(CameraBase);
 
@@ -119,7 +119,7 @@ void World::CacheCamera(bool State) {
 
 void World::CacheLocalPlayer(bool State) {
 	if (State) {
-		auto buff = Coms->ReadVirtual<UINT64>(Base + Offsets::LocalPlayer);
+		auto buff = Coms->ReadVirtual<UINT64>(m_Base + Offsets::LocalPlayer);
 
 		m_LocalPlayer.m_Base = Coms->ReadVirtual<UINT64>(buff + 0x8);
 	}
@@ -128,35 +128,10 @@ void World::CacheLocalPlayer(bool State) {
 }
 
 void World::CacheEntityList(bool State) {
+	
+	m_EntityManager.Tick(State);
+
 	/*
-	auto TempList = std::vector<Entity>();
-	auto VehicleList = std::vector<Vehicle>();
-
-	if (State) {
-		PushbackEntity(VehicleList, TempList, g_Client->m_World.Base, 0x1C28, g_Client->m_World.localPlayer);// We have to do + 8, cause at offset 0x0 is the class vtable.
-		PushbackEntity(VehicleList, TempList, g_Client->m_World.Base, 0x1CF0, g_Client->m_World.localPlayer);
-		PushbackEntity(VehicleList, TempList, g_Client->m_World.Base, 0x1db8, g_Client->m_World.localPlayer);
-		PushbackEntity(VehicleList, TempList, g_Client->m_World.Base, 0x1E80, g_Client->m_World.localPlayer);
-	} else {
-		TempList = Entities;
-		VehicleList = Vehicles;
-	}
-
-	// Before you had it so it would constantly add entities to the same list, without clearing up.
-	// resulting in ALOT of duplicates.
-
-	for (auto& Entry : TempList) {
-		Entry.Cache(true);
-	}
-
-	for (auto& Entry : VehicleList) {
-		Entry.Cache(State);
-	}
-
-	Entities = TempList;
-	Vehicles = VehicleList;
-	*/
-
 	std::unordered_map<uintptr_t, Entity> tempEntities = entityCache;
 	std::unordered_map<uintptr_t, Vehicle> tempVehicles = vehicleCache;
 
@@ -169,7 +144,7 @@ void World::CacheEntityList(bool State) {
 		// Populate temporary data from game memory
 		for (uint32_t offset : { Offsets::EntityListNearNear, Offsets::EntityListNear, Offsets::EntityListFar  }) {//0x1E80
 			GatherEntitiesAndVehiclesAtOffset(
-				g_Client->m_World.Base,
+				g_Client->m_World.m_Base,
 				offset,
 				g_Client->m_World.localPlayer,
 				newEntities,
@@ -188,7 +163,7 @@ void World::CacheEntityList(bool State) {
 	}
 	
 	for (auto& [_, vehicle] : tempVehicles) {
-		vehicle.Cache(State);
+		vehicle.VehicleCache(State);
 	}
 
 	/*
@@ -212,13 +187,14 @@ void World::CacheEntityList(bool State) {
 		... 
 	}
 
-	*/
+
 
 	// this is not atomic
 	//mutex.lock();	- wait until we have exclusive access
 	entityCache = tempEntities;	
 	vehicleCache = tempVehicles;
 	//mutex.unlock(); - free up and let other threads use the resources :)
+	*/
 }
 
 void World::Cache(bool State) {

@@ -1,8 +1,8 @@
 #include "framework.h"
 
 
-void PushbackEntity(std::vector<Vehicle>& Vehicles,std::vector<Entity>& List, UINT64 World, UINT32 Offset, UINT64 LocalPlayer) {
-
+void PushbackEntity(std::vector<Entity>& Vehicles,std::vector<Entity>& List, UINT64 World, UINT32 Offset, UINT64 LocalPlayer) {
+    /*
     const auto ListEntry = Coms->ReadVirtual<UINT64>(World + Offset);
 
     const auto ListSize = Coms->ReadVirtual<UINT32>(World + Offset + 0x8);
@@ -30,11 +30,11 @@ void PushbackEntity(std::vector<Vehicle>& Vehicles,std::vector<Entity>& List, UI
         Temp.m_Base = EntityEntry;
 
         List.push_back(Temp);
-    }
+    }*/
 }
 
-void GatherEntitiesAndVehiclesAtOffset(uint64_t worldBase,uint32_t offset,uint64_t localPlayer,std::unordered_map<uintptr_t, Entity>& entities,std::unordered_map<uintptr_t, Vehicle>& vehicles)
-{
+void GatherEntitiesAndVehiclesAtOffset(uint64_t worldBase,uint32_t offset,uint64_t localPlayer,std::unordered_map<uintptr_t, Entity>& entities,std::unordered_map<uintptr_t, Entity>& vehicles)
+{/*
     const auto listEntry = Coms->ReadVirtual<uint64_t>(worldBase + offset);
     if (!listEntry) return;
 
@@ -68,7 +68,7 @@ void GatherEntitiesAndVehiclesAtOffset(uint64_t worldBase,uint32_t offset,uint64
         Entity e;
         e.m_Base = entityBase;
         entities[entityBase] = e;
-    }
+    }*/
 }
 
 Vector3 Screen;
@@ -267,28 +267,25 @@ void noRecoil(const UINT64& ModuleBase)
 
 }
 
-Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector<Vehicle> Vehicles, UINT64 ModuleBase)
+Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, UINT64 ModuleBase)
 {
     Vector3 bestT;
     float closest = FLT_MAX;
 
     const auto Camera = g_Client->GetWorld()->GetCamera();
 
-    for (auto& [base, entity] : EntityMap) {
+    for (auto& entity : entities) {
 
-        //entity.Cache(false);    // dummy stuff.
-
-        //const auto World = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2596C50);
+        if (entity->type != EntityType::Player || entity->type != EntityType::Vehicle)
+            break;
         
         Vector3 Pos;
 
-        //const auto Camera = Coms->Read<UINT64>(World + 0xD30);
-
-        if (entity.GetHeadPosition().IsZero())
+        if (entity->GetHeadPosition().IsZero())
             continue;
 
-        if (entity.dead) {
-            if (g_Client->GetWorld()->GetCamera()->WorldToScreen(entity.GetHeadPosition(), Pos)) {
+        if (entity->dead) {
+            if (g_Client->GetWorld()->GetCamera()->WorldToScreen(entity->GetHeadPosition(), Pos)) {
 
                 if (!g_Client->GetWorld()->IsInFOV(Pos))
                     continue;
@@ -305,7 +302,7 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
 
                 if (distance < closest) {
                     closest = distance;
-                    bestT = entity.GetHeadPosition();
+                    bestT = entity->GetHeadPosition();
                 }
 
                 //float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
@@ -325,7 +322,7 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
 
         //     if (!CurrentEnt.GetDead()) {
         CurrentEnt.GetTargetInVehicleTransform();
-        if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.m_TransformedHeadPos, Pos)) {
+        if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.vehicle->m_TransformedHeadPos, Pos)) {
 
             Vector3 viewPort = Coms->ReadVirtual<Vector3>(Camera + 0x58);
             Vector3 centre;
@@ -335,7 +332,7 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
             float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
             if (distance < closest) {
                 closest = distance;
-                bestT = CurrentEnt.m_TransformedHeadPos;
+                bestT = CurrentEnt.vehicle->m_TransformedHeadPos;
             }
             //}
         }
@@ -346,27 +343,27 @@ Vector3 bestTarget(std::unordered_map<uintptr_t, Entity>& EntityMap, std::vector
 
 #include "World.h"
 
-void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 World, std::unordered_map<uintptr_t, Vehicle> vehicleMap) {
+void HeadESP(const std::vector<Entity*> entities , UINT64 World, std::vector<Entity*> vehicles) {
     
     auto Pre = Coms->GetReads();
 
     Camera* Camera = g_Client->GetWorld()->GetCamera();
     
-    for (const auto& [base, entity] : entityMap) {
+    for (const auto& entity : entities) {
         Vector3 ScreenPos;
         //if (WorldToScreen(pCamera, entity.GetHeadPosition(), ScreenPos)) {//maby use getheadpostion2
-        if (Camera->WorldToScreen(entity.GetHeadPosition(), ScreenPos)) {
+        if (Camera->WorldToScreen(entity->GetHeadPosition(), ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(0, 0, 200));
         }
     }
-    for (auto& [base, vehicle] : vehicleMap) {
+    for (const auto& entity : vehicles) {
 
         auto Draw = ImGui::GetBackgroundDrawList();
 
         Vector3 ScreenPos;
-        vehicle.GetTargetInVehicleTransform();
-        if (Camera->WorldToScreen(vehicle.m_TransformedHeadPos, ScreenPos)) {
+        entity->GetTargetInVehicleTransform();
+        if (Camera->WorldToScreen(entity->vehicle->m_TransformedHeadPos, ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(200, 0, 0));
         }
@@ -379,21 +376,17 @@ void HeadESP(const std::unordered_map<uintptr_t, Entity>& entityMap, UINT64 Worl
 
 }
 
-void ESP(const std::unordered_map<uintptr_t, Entity>& entityMap, uint64_t worldBase, uint64_t moduleBase) {
+void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t moduleBase) {
+
     auto Draw = ImGui::GetBackgroundDrawList();
     
     const auto Camera = g_Client->GetWorld()->GetCamera();
 
-    for (const auto& [base, entity] : entityMap) {
+    for (const auto& entity : entityMap) {
 
-        // nothing in entity is cached yet?
-        // -> burger joint.
 
-        //if (Entity.GetDead())
-        //    continue;
-
-        Vector3 FeetPosition = entity.GetFeetPosition();
-        Vector3 HeadPosition = entity.GetHeadPosition();     // this is messed up, <-- this aint no head position, this is camera position. You are looping entities in here. but only getting the head position at the local player. so in reality, wrong information.
+        Vector3 FeetPosition = entity->GetFeetPosition();
+        Vector3 HeadPosition = entity->GetHeadPosition();     // this is messed up, <-- this aint no head position, this is camera position. You are looping entities in here. but only getting the head position at the local player. so in reality, wrong information.
 
 
         Vector3 ScreenFeet;
