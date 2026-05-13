@@ -212,8 +212,12 @@ void Client::Cache(bool State) {
 		// used to check ptrs.
 
 		auto WorldBase = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::World);
+		auto NetworkManager = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2181628);
 
 		m_World.Init(WorldBase);
+		m_NetworkManager.m_Base = NetworkManager;
+
+		m_NetworkManager.Cache(State);
 	}
 
 	m_World.Cache(State);

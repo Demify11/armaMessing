@@ -93,6 +93,8 @@ public:
 
 	World m_World;
 
+	NetworkManager m_NetworkManager;
+
 	auto GetWorld() -> World* { return &m_World; }
 
 	void Cache(bool State);

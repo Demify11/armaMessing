@@ -275,9 +275,6 @@ Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, 
     const auto Camera = g_Client->GetWorld()->GetCamera();
 
     for (auto& entity : entities) {
-
-        if (entity->type != EntityType::Player || entity->type != EntityType::Vehicle)
-            break;
         
         Vector3 Pos;
 
@@ -384,6 +381,8 @@ void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t mod
 
     for (const auto& entity : entityMap) {
 
+        //if (entity->type != EntityType::Player || entity->type != EntityType::Vehicle)
+        //    break;
 
         Vector3 FeetPosition = entity->GetFeetPosition();
         Vector3 HeadPosition = entity->GetHeadPosition();     // this is messed up, <-- this aint no head position, this is camera position. You are looping entities in here. but only getting the head position at the local player. so in reality, wrong information.

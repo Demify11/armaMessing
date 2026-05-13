@@ -36,6 +36,8 @@
 #include "Weapon.h"
 #include "Entity.h"
 #include "EntityManager.h"
+#include "Identity.h"
+#include "NetworkManager.h"
 #include "World.h"
 #include "misc.h"
 #include "SigScanner.h"

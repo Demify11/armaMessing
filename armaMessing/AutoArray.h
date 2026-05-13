@@ -22,6 +22,11 @@ public:
 		(void)Release();
 	}
 
+	PBYTE GetRaw() {
+		return m_Contents;
+	} // added by me to allow access to buffer such that i can read the addresses of a entry and not just the value
+	//by no editing the functions below that return the values of an entry.
+
 public:
 	bool Allocate(UINT32 Size, UINT32 Start = 0x0, UINT32 Offset = 0x8) {
 

@@ -20,6 +20,11 @@ namespace Offsets {
     inline uintptr_t WeaponState = 0xC40;
     inline uintptr_t Magazine = 0x48;
 
+    inline uintptr_t NetworkManager = 0x2181628;
+    inline uintptr_t NetworkClient = 0x48;
+    inline uintptr_t PlayerIdentities = 0x38;
+
+
 }
 
 struct SignatureDef {
