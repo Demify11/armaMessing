@@ -46,6 +46,7 @@ void EntityManager::DetectAndUpdate() {
             if (!knownBases.contains(Base)) {
                 Entity e;
                 e.m_Base = Base;
+                e.InitNetworkId();
 
                 // classify ONLY once
                 e.Classify();

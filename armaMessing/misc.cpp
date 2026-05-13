@@ -419,6 +419,11 @@ void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t mod
             auto x = ScreenFeet.x - Width / 2;
             auto y = ScreenFeet.y;
 
+            auto Name = entity->m_Name.c_str();
+            auto Size = ImGui::CalcTextSize(Name);
+            auto FinalPositionX = ScreenHead.x - Size.x / 2;
+
+            Draw->AddText(ImVec2(FinalPositionX, ScreenHead.y), IM_COL32_WHITE, entity->m_Name.c_str());
             Draw->AddRect(ImVec2(x, y), ImVec2(x + Width, y + Height), ImColor(255, 255, 255), 0, 0, 1);
 
         }

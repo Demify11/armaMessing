@@ -121,8 +121,9 @@ int main() {
     CloseHandle(
         CreateThread(0, 0, (LPTHREAD_START_ROUTINE)CacheThread, 0, 0, 0)
     );
-
+    
     g_Overlay->Loop();
+    
 
 
     /*

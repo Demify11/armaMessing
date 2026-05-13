@@ -95,6 +95,22 @@ bool Entity::GetDead() {
 	return dead;
 }
 
+void Entity::InitNetworkId()
+{
+	m_NetworkId = Coms->ReadVirtual<int>(m_Base + 0xC34);
+
+	if (m_NetworkId != -1 || HasName == false) {
+
+	
+		auto it = g_Client->m_NetworkManager.Identities.find(m_NetworkId);
+
+		if (it != g_Client->m_NetworkManager.Identities.end()) {
+			m_Name = it->second.m_Name;
+		}
+	}
+	HasName = true;
+}
+
 Vector3 Entity::GetFeetPosition() const{
 	return FeetPos;
 }
@@ -209,6 +225,7 @@ void Entity::Classify() {
 	}
 	if (category == "soldier") {
 		type = EntityType::Player;
+		// grab name from networkamanger if exists.
 	}
 	else {
 		type = EntityType::Junk;

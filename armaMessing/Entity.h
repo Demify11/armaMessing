@@ -208,17 +208,21 @@ private:
 public:
 	UINT64 m_Base = 0;
 	bool dead;
+	int m_NetworkId = 0;
 	Vector3 HeadPos;
 	Vector3 HeadPos2;
 	Vector3 FeetPos;
 	UINT64 VisualState = 0;
 	UINT64 m_VisualState2;
 	Vector3 VehicleHeadPos;
+	std::string m_Name;
+	bool HasName = false;
 
 	EntityType type = EntityType::Unknown;
 	bool classified = false;
 
 	bool GetDead();
+	void InitNetworkId();
 	void Cache(bool State);
 	void WriteViewAngles(Vector3 Angles);
 	void Classify();
@@ -228,6 +232,10 @@ public:
 	Vector3 HeadPosition();
 	Vector3 GetFeetPosition() const;
 	Vector3 GetHeadPosition() const;
+
+	// save name in here.
+	// some init function only ran once on creation getting name from NetworkManager.
+	// incase the entity is an online player (netid is -1) and does not have a name search in Networkmanager again
 
 	std::optional<VehicleData> vehicle;
 

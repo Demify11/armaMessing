@@ -8,6 +8,8 @@ public:
 	void Cache(bool State);
 
 private:
+
+
 	UINT64 m_NetworkClient;
 	UINT64 m_Identities;
 	std::string m_Name;

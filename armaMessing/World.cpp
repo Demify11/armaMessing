@@ -217,9 +217,9 @@ void Client::Cache(bool State) {
 		m_World.Init(WorldBase);
 		m_NetworkManager.m_Base = NetworkManager;
 
-		m_NetworkManager.Cache(State);
+		
 	}
-
+	m_NetworkManager.Cache(State);
 	m_World.Cache(State);
 }
 

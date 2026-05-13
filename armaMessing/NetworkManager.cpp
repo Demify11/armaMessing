@@ -51,23 +51,26 @@ void NetworkManager::CacheIdentities(bool State) { //we cant really use the auto
 
 		//auto* entries = reinterpret_cast<IdentityEntry*>(Buffer); dont need this anymore becuase we directly make a buffer of entries
 
-		for (int i = 0; i < ListSize; i++) {
-			
+		for (int i = 0; i < ListSize; i++)
+		{
 			IdentityEntry& entry = Entries[i];
-			Identity Temp;
-			Temp.m_NetworkId = entry.m_NetworkId;
+
+			auto& cached = Identities[entry.m_NetworkId];
+
+			cached.m_NetworkId = entry.m_NetworkId;
 
 			if (entry.m_NamePtr)
-			{	
-				Temp.m_Name = Coms->ReadString(entry.m_NamePtr + 0x10);
+			{
+				if (cached.m_NamePtr != entry.m_NamePtr)
+				{
+					cached.m_NamePtr = entry.m_NamePtr;
+					cached.m_Name = Coms->ReadString(entry.m_NamePtr + 0x10);
+				}
 			}
-
-			Identities[Temp.m_NetworkId] = Temp;
-
 		}
 		
 		delete[] Entries;
 
 	}
-
+	//Need a way to remove dead entities.
 }
