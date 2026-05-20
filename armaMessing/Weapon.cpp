@@ -46,7 +46,7 @@ void Weapon::TraverseString(bool State) {
 		if (m_Index >= 0x0 && m_Index < 0x3E8) {
 
 			if (m_List.size() < m_Index)
-				return;	// fuck.
+				return;	// f.
 
 			m_CurrentWeaponStruct = m_List[m_Index];
 
@@ -64,7 +64,8 @@ void Weapon::CacheMag(bool State) {
 
 	if (State) {
 		m_Mag.Init(Coms->ReadVirtual<UINT64>(m_CurrentWeaponStruct.MuzzleState + 0x48));
+		m_Mag.Cache(State);
 	}
-	m_Mag.Cache(State);
+	
 
 }

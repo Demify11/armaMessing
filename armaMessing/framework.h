@@ -38,6 +38,7 @@
 #include "EntityManager.h"
 #include "Identity.h"
 #include "NetworkManager.h"
+#include "Bullet.h"
 #include "World.h"
 #include "misc.h"
 #include "SigScanner.h"

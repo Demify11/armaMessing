@@ -55,6 +55,8 @@ private:
 	Camera m_Camera;
 	std::vector<Entity>Entities;
 	std::vector<Entity>Vehicles;
+	std::vector<Bullet*>m_BulletList;
+
 public:
 	EntityManager m_EntityManager;
 
@@ -78,6 +80,7 @@ private:
 	void CacheCamera(bool State);
 	void CacheEntityList(bool State);
 	void CacheLocalPlayer(bool State);
+	void CacheBulletList(bool State);
 
 public:
 

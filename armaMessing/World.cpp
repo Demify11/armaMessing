@@ -202,7 +202,36 @@ void World::Cache(bool State) {
 	CacheCamera(State);
 	CacheLocalPlayer(State);
 	CacheEntityList(State);
+	CacheBulletList(State);
 
+}
+
+void World::CacheBulletList(bool State) {
+
+	std::vector<Bullet*> BulletList;
+
+	auto Array = AutoArray(m_Base + Offsets::BulletList);
+
+	int size = Array.GetSize();
+
+	if (!Array.Allocate(Array.GetSize()))
+		return;
+
+	for (int i = 0; i < size; i++) {
+
+		const auto BulletListBase = Array.Get(i);
+
+		Bullet Temp;
+		Temp.m_Base = BulletListBase;
+
+		Temp.CacheOwnerInit();
+		Temp.Cache(State);
+
+		BulletList.push_back(&Temp);
+
+	}
+
+	m_BulletList = BulletList;
 }
 
 void Client::Cache(bool State) {

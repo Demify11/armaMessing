@@ -11,6 +11,9 @@ namespace Offsets {
     inline uintptr_t World = 0;
     inline uintptr_t LocalPlayer = 0x2C38;
     inline uintptr_t Camera = 0xD30;
+    inline uintptr_t LocalVisualState = 0xD0;
+    inline uintptr_t VisualState = 0x180;
+
     inline uintptr_t EntityListNearNear = 0x1C28;
     inline uintptr_t EntityListNear = 0x1CF0;
     inline uintptr_t EntityListFar = 0x1DB8;
@@ -19,6 +22,9 @@ namespace Offsets {
     inline uintptr_t WeaponIndex = 0xC6C;
     inline uintptr_t WeaponState = 0xC40;
     inline uintptr_t Magazine = 0x48;
+
+    inline uintptr_t BulletList = 0x1B58;
+    inline uintptr_t Velocity = 0x54;
 
     inline uintptr_t NetworkManager = 0x2181628;
     inline uintptr_t NetworkClient = 0x48;

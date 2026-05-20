@@ -367,7 +367,7 @@ void Entity::VehicleCache(bool State) {
 
 void LocalPlayer::CacheLocal(bool State) {
 	Cache(State); //it doesnt cache the whole
-	//CacheWeapon(State);
+	CacheWeapon(State);
 	CacheGunAngles(State);
 }
 

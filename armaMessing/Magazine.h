@@ -8,8 +8,13 @@ private:
 
 	UINT64 m_Base;
 
+	float m_Gravity;
+	float m_AirFriction;
+
 	void Encrypt();
 	uint32_t Decrypt(uint32_t key, uint32_t part1, uint32_t part2);
+
+	void CacheMagType(bool Stat);
 
 public:
 	void Init(UINT64 base);
