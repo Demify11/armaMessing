@@ -59,6 +59,7 @@ private:
 
 public:
 	EntityManager m_EntityManager;
+	Prediction m_Prediction;
 
 	std::unordered_map<uintptr_t, Entity> entityCache;
 	std::unordered_map<uintptr_t, Entity> vehicleCache;

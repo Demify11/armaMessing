@@ -65,7 +65,7 @@ void CacheThread() {
         CacheTimer.Stop();
 
 #if _DEBUG
-        printf("[CACHE] %i - Reads on Tick: %i \n", doSlowCache, Coms->PopReads());
+        //printf("[CACHE] %i - Reads on Tick: %i \n", doSlowCache, Coms->PopReads());
 #endif
 
         auto EndTime = std::chrono::steady_clock::now();

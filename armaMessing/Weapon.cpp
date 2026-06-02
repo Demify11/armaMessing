@@ -4,6 +4,7 @@ void Weapon::Cache(bool State) {
 	CacheIndex(State);
 	CacheWeaponArrayList(State);
 	TraverseString(State);
+	CacheWeaponStruct(State);
 	CacheMag(State);
 }
 
@@ -60,10 +61,17 @@ void Weapon::TraverseString(bool State) {
 	}
 }
 
+void Weapon::CacheWeaponStruct(bool State) {
+
+	m_InitSpeed = Coms->ReadVirtual<float>(m_CurrentWeaponStruct.WeaponType + 0x4F4);
+
+
+}
+
 void Weapon::CacheMag(bool State) {
 
 	if (State) {
-		m_Mag.Init(Coms->ReadVirtual<UINT64>(m_CurrentWeaponStruct.MuzzleState + 0x48));
+		m_Mag.Init(Coms->ReadVirtual<UINT64>(m_CurrentWeaponStruct.MuzzleType + 0x5E8));
 		m_Mag.Cache(State);
 	}
 	

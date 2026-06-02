@@ -210,7 +210,7 @@ void Overlay::Draw() {
 	//---------------------------------------------------------------------------------------------------------
 
 
-	Vector3 TargetEntity;
+	Entity TargetEntity;
 	// You would normally have some form of target selection.
 	// So you'd have a list of entities, and then sort.
 	// First you check if they are invis
@@ -256,11 +256,13 @@ void Overlay::Draw() {
 		noSway(ModuleBase);
 	}
 	if (bAimBot) {
-
+		
 		if (GetAsyncKeyState(VK_LCONTROL)) {
+			//This function now returns pointer, instead of copy Its better and gives no errors
+			//since we now use UniquePtr which is not copyable.
 			TargetEntity = bestTarget(
 				g_Client->m_World.m_EntityManager.GetEntities(),
-				g_Client->GetWorld()->GetVehicles(),
+				g_Client->m_World.m_EntityManager.GetVehicles(),
 				ModuleBase
 			);
 
@@ -268,10 +270,21 @@ void Overlay::Draw() {
 			// the function would return an entity which would cut off all the info for the vehicle.
 
 			//CameraOn.Cache(true);
-			auto Angles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, TargetEntity, g_Client->m_World.m_LocalPlayer.GGunAngles);
+			auto Angles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, TargetEntity.m_HeadPos, g_Client->m_World.m_LocalPlayer.GGunAngles);
 
-			if (TargetEntity != Vector3(0, 0, 0)) {
-				g_Client->m_World.m_LocalPlayer.WriteViewAngles(Angles);
+			auto ImprovedAngles = g_Client->m_World.m_Prediction.LeadPrediction(
+				TargetEntity.GetHeadPos(),
+				TargetEntity.GetVelocity(),
+				g_Client->m_World.m_LocalPlayer.m_Velocity,
+				g_Client->m_World.m_LocalPlayer.m_HeadPos,
+				g_Client->m_World.m_LocalPlayer.m_weapon.m_InitSpeed,
+				g_Client->m_World.m_LocalPlayer.m_weapon.m_Mag.m_AirFriction,
+				9.8f, 0.002f, 5.0f);
+
+			auto NewAngles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, ImprovedAngles, g_Client->m_World.m_LocalPlayer.GGunAngles);
+
+			if (TargetEntity.GetHeadPos() != Vector3(0, 0, 0)) {
+				g_Client->m_World.m_LocalPlayer.WriteViewAngles(NewAngles);
 			}
 		}
 

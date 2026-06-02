@@ -173,34 +173,42 @@ struct Entity;
 struct VehicleData {
 
 	
-
+	/*
 	struct PageRead {
 		Vector3 right;
 		Vector3 up;
 		Vector3 forward;
 		Vector3 pos;
-	};
+	};*/
 
 	UINT64 VehVisualState = 0;
-	PageRead VehVisualPage;
+	//PageRead VehVisualPage;
+
+	Vector3 VehVelocity;
 
 	Vector3 VehHeadPos;
 	Vector3 m_TransformedHeadPos;
 
 	std::string CarName = "";
 
-	bool HasDriver = false;
 
 	Entity* m_Driver = nullptr;	// null if there's none!!!!
 	std::vector<Entity*> m_Passengers;	// same heree ^^
 
 };
 
-class Entity {
-private:
+struct PageVRead {
+	Vector3 right;
+	Vector3 up;
+	Vector3 forward;
+	Vector3 pos;
+};
 
+class Entity {
+protected:
 	void CacheVisualState(bool State);
 	void CacheDead(bool State);
+private:
 	void CacheFeetPosition(bool State);
 	void CacheHeadPosition2(bool State);
 	void CacheHeadPosition(bool State);	
@@ -209,12 +217,14 @@ public:
 	UINT64 m_Base = 0;
 	bool dead;
 	int m_NetworkId = 0;
-	Vector3 HeadPos;
+	Vector3 m_HeadPos;
 	Vector3 HeadPos2;
-	Vector3 FeetPos;
+	Vector3 m_FeetPos;
+	Vector3 m_Velocity;
 	UINT64 VisualState = 0;
 	UINT64 m_VisualState2;
 	Vector3 VehicleHeadPos;
+	PageVRead VisualCamera;
 	std::string m_Name;
 	bool HasName = false;
 
@@ -223,9 +233,11 @@ public:
 
 	bool GetDead();
 	void InitNetworkId();
-	void Cache(bool State);
+	virtual void Cache(bool State);
 	void WriteViewAngles(Vector3 Angles);
-	void Classify();
+	static std::string ReadCategory(UINT64 base);
+	virtual void OnClassify() {};
+	static Entity* Create(UINT64 base);
 	std::string GetType(bool State);
 	Vector3 HeadPosition2(UINT64 ModuleBase);
 	Vector3 GunAngles();
@@ -233,23 +245,17 @@ public:
 	Vector3 GetFeetPosition() const;
 	Vector3 GetHeadPosition() const;
 
+	virtual Vector3 GetHeadPos();
+	virtual Vector3 GetVelocity();
+
 	// save name in here.
 	// some init function only ran once on creation getting name from NetworkManager.
 	// incase the entity is an online player (netid is -1) and does not have a name search in Networkmanager again
 
-	std::optional<VehicleData> vehicle;
 
 	Entity* GetTargetInVehicleTransform(); // use this for aimbot selection
 
-private:
-	void CacheVehicleVisualState(bool State);
-
-private:
-	void CacheCleanName(bool State);
-	void CacheDriver(bool State);
-
-public:
-	void VehicleCache(bool State);
+	virtual ~Entity() = default;
 
 };
 
@@ -369,18 +375,17 @@ static std::unordered_map<std::string, const Vector3> g_HeadLookup = {
 
 
 class LocalPlayer : public Entity {
-
-
 public:
 	Vector3 GGunAngles;
 	Weapon m_weapon;
 
 public:
+	float GetInitSpeed();
 
+public:
 	void CacheLocal(bool State);
 
 private:
-
 	void CacheWeapon(bool State);
 	void CacheGunAngles(bool State);
 

@@ -16,7 +16,7 @@ void EntityManager::Tick(bool State) {
     }
 
     for (auto* entity : vehicles) {
-        entity->VehicleCache(State);
+        entity->Cache(State);
     }
 }
 
@@ -37,23 +37,18 @@ void EntityManager::DetectAndUpdate() {
 
             auto Base = Array.Get(i);
 
-            if (!Base || Base == g_Client->m_World.localPlayer)
+            if (!Base || Base == g_Client->m_World.m_LocalPlayer.m_Base)
                 continue;
 
             currentBases.insert(Base);
 
             //Handle New entities
             if (!knownBases.contains(Base)) {
-                Entity e;
-                e.m_Base = Base;
-                e.InitNetworkId();
+                if (Entity* e = Entity::Create(Base)) {
 
-                // classify ONLY once
-                e.Classify();
-
-                entityMap.emplace(Base, std::move(e)); //this is faster
-
-                m_Changed = true;
+                    entityMap.emplace(Base, std::move(e)); //this is faster
+                    m_Changed = true;
+                }
             }
         }
     }
@@ -80,17 +75,17 @@ void EntityManager::DetectAndUpdate() {
 void EntityManager::RebuildVectors() {
 
     std::vector<Entity*> tempEntities;
-    std::vector<Entity*> tempVehicles;
+    std::vector<Vehicle*> tempVehicles;
 
     tempEntities.reserve(entityMap.size());
     tempVehicles.reserve(entityMap.size());
 
     for (auto& [_, entity] : entityMap) {
         
-        if (entity.type == EntityType::Vehicle) {
-            tempVehicles.push_back(&entity);
+        if (entity->type == EntityType::Vehicle) {
+            tempVehicles.push_back(static_cast<Vehicle*>(entity));
         } else {
-            tempEntities.push_back(&entity);
+            tempEntities.push_back(entity);
         }
     }
 

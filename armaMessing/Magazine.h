@@ -7,9 +7,11 @@ private:
 	UINT64 MagazineAddr;
 
 	UINT64 m_Base;
-
+public:
 	float m_Gravity;
 	float m_AirFriction;
+	float m_MagazineSpeed;
+private:
 
 	void Encrypt();
 	uint32_t Decrypt(uint32_t key, uint32_t part1, uint32_t part2);

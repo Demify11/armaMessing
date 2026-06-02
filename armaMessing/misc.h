@@ -10,36 +10,7 @@ Vector3 GetEntityPosition(const UINT64& Entity);
 void Teleport(const UINT64& VisualState);
 void noSway(const UINT64& ModuleBase);
 void noRecoil(const UINT64& ModuleBase);
-Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, UINT64 ModuleBase);
-void HeadESP(const std::vector<Entity*> entities, UINT64 World, std::vector<Entity*> vehicles);
+Entity bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles, UINT64 ModuleBase);
+void HeadESP(const std::vector<Entity*> entities, UINT64 World, std::vector<Vehicle*> vehicles);
 void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t moduleBase);
 void GatherEntitiesAndVehiclesAtOffset(uint64_t worldBase, uint32_t offset, uint64_t localPlayer, std::unordered_map<uintptr_t, Entity>& entities, std::unordered_map<uintptr_t, Entity>& vehicles);
-
-template <typename T>
-void UpdateMapWithDelta(
-    std::unordered_map<uintptr_t, T>& currentMap,
-    const std::unordered_map<uintptr_t, T>& incomingMap
-) {
-    for (const auto& [base, incomingEntity] : incomingMap) {
-        auto it = currentMap.find(base);
-        if (it == currentMap.end()) {
-            // New entity
-            currentMap[base] = incomingEntity;
-        }
-        else {
-            // Existing entity: update if needed (up to you to define "changed")
-            // In practice, you might compare important fields here.
-            it->second = incomingEntity;
-        }
-    }
-
-    // Optionally, remove stale entities:
-    for (auto it = currentMap.begin(); it != currentMap.end(); ) {
-        if (incomingMap.find(it->first) == incomingMap.end()) {
-            it = currentMap.erase(it);
-        }
-        else {
-            ++it;
-        }
-    }
-}

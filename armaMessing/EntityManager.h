@@ -13,7 +13,7 @@ public:
         return buffer;
     }
     
-    const std::vector<Entity*> GetVehicles() { 
+    const std::vector<Vehicle*> GetVehicles() { 
         entityMutex.lock();
         auto& buffer = vehicles;
         entityMutex.unlock();
@@ -21,12 +21,12 @@ public:
     }
 
 private:
-    std::unordered_map<uintptr_t, Entity> entityMap;
+    std::unordered_map<uintptr_t, Entity*> entityMap;
     std::unordered_set<uintptr_t> knownBases;
 
     std::mutex entityMutex;
     std::vector<Entity*> entities;
-    std::vector<Entity*> vehicles;
+    std::vector<Vehicle*> vehicles;
 
     bool m_Changed = true;
 

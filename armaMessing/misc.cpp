@@ -267,9 +267,9 @@ void noRecoil(const UINT64& ModuleBase)
 
 }
 
-Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, UINT64 ModuleBase)
+Entity bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles, UINT64 ModuleBase)
 {
-    Vector3 bestT;
+    Entity bestT;
     float closest = FLT_MAX;
 
     const auto Camera = g_Client->GetWorld()->GetCamera();
@@ -299,7 +299,7 @@ Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, 
 
                 if (distance < closest) {
                     closest = distance;
-                    bestT = entity->GetHeadPosition();
+                    bestT = *entity; //should we return pointer or entity
                 }
 
                 //float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
@@ -313,15 +313,15 @@ Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, 
 
     for (auto& CurrentEnt : Vehicles)
     {
-        const auto World = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2596C50);
+        //const auto World = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2596C50);
         Vector3 Pos;
-        const auto Camera = Coms->ReadVirtual<UINT64>(World + 0xD30);
+        //const auto Camera = Coms->ReadVirtual<UINT64>(World + 0xD30);
 
         //     if (!CurrentEnt.GetDead()) {
-        CurrentEnt.GetTargetInVehicleTransform();
-        if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt.vehicle->m_TransformedHeadPos, Pos)) {
+        //CurrentEnt->GetTargetInVehicleTransform();
+        if (g_Client->GetWorld()->GetCamera()->WorldToScreen(CurrentEnt->m_TransformedHeadPos, Pos)) {
 
-            Vector3 viewPort = Coms->ReadVirtual<Vector3>(Camera + 0x58);
+            Vector3 viewPort = Camera->CachedViewPort;
             Vector3 centre;
             centre.x = viewPort.x;
             centre.y = viewPort.y;
@@ -329,7 +329,7 @@ Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, 
             float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
             if (distance < closest) {
                 closest = distance;
-                bestT = CurrentEnt.vehicle->m_TransformedHeadPos;
+                bestT = *CurrentEnt;
             }
             //}
         }
@@ -340,7 +340,7 @@ Vector3 bestTarget(std::vector<Entity*> entities, std::vector<Entity> Vehicles, 
 
 #include "World.h"
 
-void HeadESP(const std::vector<Entity*> entities , UINT64 World, std::vector<Entity*> vehicles) {
+void HeadESP(const std::vector<Entity*> entities , UINT64 World, std::vector<Vehicle*> vehicles) {
     
     auto Pre = Coms->GetReads();
 
@@ -359,8 +359,8 @@ void HeadESP(const std::vector<Entity*> entities , UINT64 World, std::vector<Ent
         auto Draw = ImGui::GetBackgroundDrawList();
 
         Vector3 ScreenPos;
-        entity->GetTargetInVehicleTransform();
-        if (Camera->WorldToScreen(entity->vehicle->m_TransformedHeadPos, ScreenPos)) {
+        //entity->GetTargetInVehicleTransform();
+        if (Camera->WorldToScreen(entity->m_TransformedHeadPos, ScreenPos)) {
 
             ImGui::GetBackgroundDrawList()->AddCircleFilled(ImVec2(ScreenPos.x, ScreenPos.y), 5, ImColor(200, 0, 0));
         }

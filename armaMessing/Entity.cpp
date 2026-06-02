@@ -13,8 +13,6 @@ void Entity::Cache(bool State) {	// FOR EACH ENTITY YOU DO 3 READS - 100 * 3
 	//auto Post = Coms->GetReads();
 
 	//printf("[DEBUG] \t-ENTITY#CACHE: %i \n", Post - Pre);
-	if (vehicle)
-		VehicleCache(State);
 
 }
 
@@ -22,9 +20,6 @@ void Entity::CacheDead(bool State) {
 	dead = !(Coms->ReadVirtual<UINT8>(m_Base + 0x5CC) & 1);
 }
 
-void Entity::CacheFeetPosition(bool State) {
-	FeetPos = Coms->ReadVirtual<Vector3>(VisualState + 0x2C);
-}
 
 void Entity::CacheVisualState(bool State) {
 	
@@ -41,8 +36,10 @@ void Entity::CacheVisualState(bool State) {
 
 	auto Data = Coms->ReadVirtual<PageRead>(VisualState);
 
-	FeetPos = *(Vector3*)(Data.pad_0000 + 0x2C);
-	HeadPos = *(Vector3*)(Data.pad_0000 + 0x168);
+	VisualCamera = *(PageVRead*)(Data.pad_0000 + 0x8);
+	m_FeetPos = *(Vector3*)(Data.pad_0000 + 0x2C);
+	m_HeadPos = *(Vector3*)(Data.pad_0000 + 0x168);
+	m_Velocity = *(Vector3*)(Data.pad_0000 + 0x54);
 }
 
 void Entity::CacheHeadPosition2(bool State) {
@@ -76,20 +73,6 @@ void Entity::CacheHeadPosition2(bool State) {
 	HeadPos2 = Coms->ReadVirtual<Vector3>(Camera + 0x2c);
 }
 
-void Entity::CacheHeadPosition(bool State) {
-
-	// You can read Vector3 at once. i was just stupid in the manware source lol
-	// 0x168 for head right?
-	// or is it chest?
-	// what was it.
-	// 0x198 is gun angles
-	// iirc
-	//auto test = Coms->Read<Vector3>(VisualState + 0x168);
-	HeadPos = Coms->ReadVirtual<Vector3>(VisualState + 0x168);    // i think this is either head or chest, idk.
-}
-
-
-
 
 bool Entity::GetDead() {
 	return dead;
@@ -112,11 +95,11 @@ void Entity::InitNetworkId()
 }
 
 Vector3 Entity::GetFeetPosition() const{
-	return FeetPos;
+	return m_FeetPos;
 }
 
 Vector3 Entity::GetHeadPosition() const{
-	return HeadPos;
+	return m_HeadPos;
 }
 
 // I'll make a quick thing to get entities.
@@ -159,7 +142,7 @@ Vector3 Entity::HeadPosition2(UINT64 ModuleBase) {	// dont use this. only for lo
 
 	//return Coms->Read<Vector3>(VisualState + 0x168);
 	//return Coms->Read<Vector3>(Camera + 0x2c);
-	return HeadPos = Coms->ReadVirtual<Vector3>(Camera + 0x2c);
+	return m_HeadPos = Coms->ReadVirtual<Vector3>(Camera + 0x2c);
 }
 
 Vector3 Entity::GunAngles() {
@@ -208,94 +191,52 @@ void Entity::WriteViewAngles(Vector3 Angles) {
 	Coms->WriteVirtual<float>(VisualState1 + 0xB4, Angles.z);
 }
 
-void Entity::Classify() {
-	if (classified)
-		return;
+std::string Entity::ReadCategory(UINT64 base) {
 
-	const auto catBuf = Coms->ReadVirtual<uint64_t>(m_Base + 0x150);
-	if (!catBuf) return;
+	const auto catBuf = Coms->ReadVirtual<uint64_t>(base + 0x150);
+	if (!catBuf) return {};
 
 	const auto catPtr = Coms->ReadVirtual<uint64_t>(catBuf + 0xD0);
-	if (!catPtr) return;
+	if (!catPtr) return {};
 
 	const std::string category = Coms->ReadString(catPtr + 0x10);
 
+	return category;
+}
+
+Entity* Entity::Create(UINT64 base) {
+	const std::string category = ReadCategory(base);
+
+	Entity* e;
+	EntityType t;
+
 	if (category == "carx") {
-		type = EntityType::Vehicle;
+		e = new Vehicle;   
+		t = EntityType::Vehicle;
 	}
-	if (category == "soldier") {
-		type = EntityType::Player;
-		// grab name from networkamanger if exists.
+	else if (category == "soldier") {
+		e = new Entity();
+		t = EntityType::Player;
 	}
 	else {
-		type = EntityType::Junk;
+		e = new Entity();
+		t = EntityType::Junk;
 	}
 
-	classified = true;
+	e->m_Base = base;
+	e->type = t;
+	e->InitNetworkId();
+	e->OnClassify();      // virtual hook for setup
+	e->classified = true;
+	return e;
+
 }
 
 ////////////////////////////////////////////////////////////////
 
 
 /* returns null if there's no target in here, REMEMBER TO DO NULL PTR CHECK OR CRASH ! */
-Entity* Entity::GetTargetInVehicleTransform() { //in future make part of caching
 
-	// What type of vehicle am i?
-
-	if (vehicle->m_Driver->m_Base == 0)
-		return NULL;
-
-	/* only works for driver.*/
-	auto it = g_HeadLookup.find(vehicle->CarName);
-	if (it == g_HeadLookup.end())
-		return vehicle->m_Driver;
-
-		//auto ModelPos = g_HeadLookup.at(CarName);
-		Vector3 ModelPos = it->second;
-
-		if (!vehicle->VehVisualState)
-			return NULL;
-
-		/*
-		// resolve HeadPos
-		// - do matrix multiplication with the visualstate transform
-		//auto VisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
-		//auto VisualState = VehVisualState;
-
-		
-		
-
-		//auto Page = Coms->ReadVirtual<PageRead>(VisualState + 0x8);
-		
-		* 
-		* 
-		* float* Transform = new float[12];
-		* 
-		*(Vector3*)&Transform[0] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 0);
-		*(Vector3*)&Transform[3] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 1);
-		*(Vector3*)&Transform[6] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 2);
-		*(Vector3*)&Transform[9] = Coms->ReadVirtual<Vector3>(VisualState + 0x8 + sizeof(Vector3) * 3);
-		
-		float _x = ModelPos.x * Transform[0] + ModelPos.y * Transform[3] + ModelPos.z * Transform[6] + Transform[9];
-		float _y = ModelPos.x * Transform[1] + ModelPos.y * Transform[4] + ModelPos.z * Transform[7] + Transform[10];
-		float _z = ModelPos.x * Transform[2] + ModelPos.y * Transform[5] + ModelPos.z * Transform[8] + Transform[11];
-
-		
-
-		delete[] Transform;*/
-		float _x = ModelPos.x * vehicle->VehVisualPage.right.x +ModelPos.y * vehicle->VehVisualPage.up.x +ModelPos.z * vehicle->VehVisualPage.forward.x + vehicle->VehVisualPage.pos.x;
-
-		float _y = ModelPos.x * vehicle->VehVisualPage.right.y +ModelPos.y * vehicle->VehVisualPage.up.y +ModelPos.z * vehicle->VehVisualPage.forward.y + vehicle->VehVisualPage.pos.y;
-
-		float _z = ModelPos.x * vehicle->VehVisualPage.right.z + ModelPos.y * vehicle->VehVisualPage.up.z +ModelPos.z * vehicle->VehVisualPage.forward.z + vehicle->VehVisualPage.pos.z;
-
-		vehicle->m_TransformedHeadPos = Vector3(_x, _y, _z);
-
-		return vehicle->m_Driver;
-	
-
-	return vehicle->m_Driver;
-}
 
 /*
 void aimbot() {
@@ -307,67 +248,37 @@ void aimbot() {
 		return false;
 }
 */
-
+/*
 void Entity::CacheVehicleVisualState(bool state) {
 
 	if (state) {
 
 		vehicle->VehVisualState = Coms->ReadVirtual<UINT64>(m_Base + 0x180);
-		vehicle->VehHeadPos = Coms->ReadVirtual<Vector3>(vehicle->VehVisualState + 0x2c); //used to be HHeadPos
-	}
+		vehicle->VehHeadPos = Coms->ReadVirtual<Vector3>(vehicle->VehVisualState + 0x2c);
 
+	}
+	vehicle->VehVelocity = Coms->ReadVirtual<Vector3>(vehicle->VehVisualState + 0x54);
 	vehicle->VehVisualPage = Coms->ReadVirtual<VehicleData::PageRead>(vehicle->VehVisualState + 0x8);
+}*/
+
+
+Vector3 Entity::GetHeadPos() {
+	return m_HeadPos;
 }
 
-void Entity::CacheCleanName(bool State) {
-
-	if (State) {
-
-		auto EntityType = Coms->ReadVirtual<UINT64>(m_Base + 0x150);
-
-		if (!EntityType)
-			return;
-
-		auto CleanNameEntry = Coms->ReadVirtual<UINT64>(EntityType + 0x13B8);
-
-		auto CleanNameSize = Coms->ReadVirtual<INT32>(CleanNameEntry + 0x8);
-
-		vehicle->CarName = Coms->ReadString(CleanNameEntry+0x10);
-	}
+Vector3 Entity::GetVelocity() {
+	return m_Velocity;
 }
 
-void Entity::CacheDriver(bool State) {
+float LocalPlayer::GetInitSpeed() {
 
-	if (State) {
-
-		auto Driver = Coms->ReadVirtual<UINT64>(m_Base + 0xE78); //Was D70, I think its acutally...
-
-		if (Driver == 0x0) {
-			vehicle->HasDriver = false;
-			return;
-		}
-
-		vehicle->m_Driver->m_Base = Driver;
-
-	}
-
-	vehicle->m_Driver->Cache(State);
-}
-
-
-void Entity::VehicleCache(bool State) {
-
-	if (!m_Base)
-		return;
-
-	CacheVehicleVisualState(State);
-	CacheCleanName(State);
-	CacheDriver(State);
+	
+	return 0.0;
 }
 
 void LocalPlayer::CacheLocal(bool State) {
 	Cache(State); //it doesnt cache the whole
-	CacheWeapon(State);
+	//CacheWeapon(State);
 	CacheGunAngles(State);
 }
 

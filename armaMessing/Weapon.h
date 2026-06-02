@@ -8,23 +8,27 @@ struct WeaponArrayListEntry {
 	UINT64 Buffer;
 };
 
-class Weapon
-{
+class Weapon {
 public:
 	UINT64 m_Base;
+	float m_InitSpeed;
+	Magazine m_Mag;
 
 private:
 	std::vector<WeaponArrayListEntry> m_List;
 	WeaponArrayListEntry m_CurrentWeaponStruct;
 	std::string m_CurrWeapon;
 
-	Magazine m_Mag;
+	
+	
 	INT32 m_Index;
 
 public:
 	void Cache(bool State);
 
 private:
+
+	void CacheWeaponStruct(bool State);
 	void CacheMag(bool State);
 	void CacheIndex(bool State);
 	void CacheWeaponArrayList(bool State);
