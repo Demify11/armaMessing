@@ -97,7 +97,7 @@ public:
 
 	World m_World;
 
-	NetworkManager m_NetworkManager;
+	Network m_Network;
 
 	auto GetWorld() -> World* { return &m_World; }
 

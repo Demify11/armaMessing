@@ -27,6 +27,9 @@ private:
 	Entity* GetTargetInVehicleTransform();
 
 protected:
+
+	bool m_HasDriver;
+
 	void OnClassify() override;
 
 	virtual Vector3 GetHeadPos() override;

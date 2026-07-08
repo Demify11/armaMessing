@@ -267,9 +267,9 @@ void noRecoil(const UINT64& ModuleBase)
 
 }
 
-Entity bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles, UINT64 ModuleBase)
+Entity* bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles, UINT64 ModuleBase)
 {
-    Entity bestT;
+    Entity* bestT = nullptr;
     float closest = FLT_MAX;
 
     const auto Camera = g_Client->GetWorld()->GetCamera();
@@ -281,7 +281,7 @@ Entity bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles,
         if (entity->GetHeadPosition().IsZero())
             continue;
 
-        if (entity->dead) {
+        if (entity->alive) {
             if (g_Client->GetWorld()->GetCamera()->WorldToScreen(entity->GetHeadPosition(), Pos)) {
 
                 if (!g_Client->GetWorld()->IsInFOV(Pos))
@@ -299,7 +299,7 @@ Entity bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles,
 
                 if (distance < closest) {
                     closest = distance;
-                    bestT = *entity; //should we return pointer or entity
+                    bestT = entity; //should we return pointer or entity
                 }
 
                 //float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
@@ -329,7 +329,7 @@ Entity bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles,
             float distance = sqrtf(powf((Pos.x - centre.x), 2) + powf((Pos.y - centre.y), 2));
             if (distance < closest) {
                 closest = distance;
-                bestT = *CurrentEnt;
+                bestT = CurrentEnt;
             }
             //}
         }
@@ -369,11 +369,11 @@ void HeadESP(const std::vector<Entity*> entities , UINT64 World, std::vector<Veh
     
     auto Post = Coms->GetReads();
 
-    printf("[DEBUG] \t-READS on HEADESP: %i \n", Post - Pre);
+    //printf("[DEBUG] \t-READS on HEADESP: %i \n", Post - Pre);
 
 }
 
-void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t moduleBase) {
+void ESP(const std::vector<Entity*>& entityMap,const std::vector<Vehicle*>& vehicleMap, uint64_t worldBase, uint64_t moduleBase) {
 
     auto Draw = ImGui::GetBackgroundDrawList();
     
@@ -403,12 +403,6 @@ void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t mod
         if (Distance > 2000)
             continue;*/
 
-        // when translating stuff from world into view perspective, be careful of what values you are dealing with.
-        // if you want to draw something from the world onto the monitor, you have to go trhough W2S and use the SCREEN cords to draw from.
-        // this code was just wrong cause i did it wrong, but yea.
-        // Now. You cache properly after this.
-
-        // voila, w2s without so many reads
 
         if (Camera->WorldToScreen(FeetPosition, ScreenFeet) &&
             Camera->WorldToScreen(HeadPosition, ScreenHead)) {
@@ -419,27 +413,53 @@ void ESP(const std::vector<Entity*>& entityMap, uint64_t worldBase, uint64_t mod
             auto x = ScreenFeet.x - Width / 2;
             auto y = ScreenFeet.y;
 
-            auto Name = entity->m_Name.c_str();
-            auto Size = ImGui::CalcTextSize(Name);
-            auto FinalPositionX = ScreenHead.x - Size.x / 2;
+            x = floorf(x); //imgui gets sus when rendering partial pixel.
+            y = floorf(y);
+            //Width = floorf(Width);
+            //Height = floorf(Height);
 
-            Draw->AddText(ImVec2(FinalPositionX, ScreenHead.y), IM_COL32_WHITE, entity->m_Name.c_str());
+            ImVec2 rect_min = ImVec2(x, y); 
+            ImVec2 rect_max = ImVec2(x + Width, y + Height);
+            if (entity) { //a blank entity sometimes is in entity list 0xd2d2d2d2 and causes crash with imgui func. this is getto fix
+                auto Name = entity->m_Name.c_str();
+                auto Size = ImGui::CalcTextSize(Name);
+                auto FinalPositionX = ScreenHead.x - Size.x / 2;
+
+                Draw->AddText(ImVec2(FinalPositionX, ScreenHead.y), IM_COL32_WHITE, entity->m_Name.c_str());
+            }
+            /*
             Draw->AddRect(ImVec2(x, y), ImVec2(x + Width, y + Height), ImColor(255, 255, 255), 0, 0, 1);
+            Draw->AddRect(ImVec2(rect_min.x + 1, rect_min.y + 1), ImVec2(rect_max.x - 1, rect_max.y - 1), ImColor(0, 0, 0));
+            Draw->AddRect(ImVec2(rect_min.x - 1, rect_min.y - 1), ImVec2(rect_max.x + 1, rect_max.y + 1), ImColor(0, 0, 0));
+            */
+
+            Draw->AddRect(rect_min, rect_max, ImColor(0, 0, 0), 0.0f, 0, 3.0f);
+            // white inner line
+            Draw->AddRect(rect_min, rect_max, ImColor(255, 255, 255), 0.0f, 0, 1.5f);
+            
 
         }
 
-        //if (WorldToScreen(Camera, FeetPosition, ScreenFeet) &&
-        //    WorldToScreen(Camera, HeadPosition, ScreenHead)) {
-        //
-        //    float Height = ScreenHead.y - ScreenFeet.y;
-        //    float Width = Height / 2;
-        //
-        //    auto x = ScreenFeet.x - Width / 2;
-        //    auto y = ScreenFeet.y;
-        //
-        //    Draw->AddRect(ImVec2(x, y), ImVec2(x + Width, y + Height), ImColor(255, 255, 255), 0, 0, 10);
-        //
-        //}
+    }
 
+    for (const auto ent : vehicleMap) {
+
+        Vector3 ScreenPos;
+
+        if (Camera->WorldToScreen(ent->GetFeetPosition(), ScreenPos)) {
+
+            float Width = 20;
+            float Height = 20;
+
+            auto TopLX = ScreenPos.x - (Width/2);
+            auto TopLY = ScreenPos.y + (Height/2);
+            auto BotRX = ScreenPos.x + (Width/2);
+            auto BotRY = ScreenPos.y - (Height/2);
+
+            Draw->AddRect(ImVec2(TopLX, TopLY), ImVec2(BotRX, BotRY), ImColor(0, 0, 0), 0.0f, 0, 3.0f);
+            // white inner line
+            Draw->AddRect(ImVec2(TopLX, TopLY), ImVec2(BotRX, BotRY), ImColor(220, 77, 1), 0.0f, 0, 1.5f);
+
+        }
     }
 }

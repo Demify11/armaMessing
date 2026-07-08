@@ -26,7 +26,7 @@ namespace Offsets {
     inline uintptr_t BulletList = 0x1B58;
     inline uintptr_t Velocity = 0x54;
 
-    inline uintptr_t NetworkManager = 0x2181628;
+    inline uintptr_t Network = 0x2181628;
     inline uintptr_t NetworkClient = 0x48;
     inline uintptr_t PlayerIdentities = 0x38;
 

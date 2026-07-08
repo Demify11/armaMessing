@@ -38,10 +38,11 @@ void Vehicle::CacheDriver(bool State) {
 
 		if (Driver == 0x0) {
 			
-			type = EntityType::Player;
+			m_HasDriver = false;
+			
 			return;
 		}
-
+		m_HasDriver = true;
 		m_Driver->m_Base = Driver;
 
 	}

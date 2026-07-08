@@ -215,7 +215,7 @@ private:
 	
 public:
 	UINT64 m_Base = 0;
-	bool dead;
+	bool alive;
 	int m_NetworkId = 0;
 	Vector3 m_HeadPos;
 	Vector3 HeadPos2;
@@ -228,6 +228,8 @@ public:
 	std::string m_Name;
 	bool HasName = false;
 
+	int m_MissedFrames = 0;
+
 	EntityType type = EntityType::Unknown;
 	bool classified = false;
 
@@ -236,8 +238,9 @@ public:
 	virtual void Cache(bool State);
 	void WriteViewAngles(Vector3 Angles);
 	static std::string ReadCategory(UINT64 base);
+	static EntityType Classify(UINT64 base);
 	virtual void OnClassify() {};
-	static Entity* Create(UINT64 base);
+	static Entity* Create(UINT64 base, EntityType t);
 	std::string GetType(bool State);
 	Vector3 HeadPosition2(UINT64 ModuleBase);
 	Vector3 GunAngles();

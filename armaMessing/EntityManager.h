@@ -21,8 +21,9 @@ public:
     }
 
 private:
+    std::unordered_set<uintptr_t> junkBases;
     std::unordered_map<uintptr_t, Entity*> entityMap;
-    std::unordered_set<uintptr_t> knownBases;
+    //std::unordered_set<uintptr_t> knownBases;
 
     std::mutex entityMutex;
     std::vector<Entity*> entities;

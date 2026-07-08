@@ -38,7 +38,7 @@
 #include "Vehicle.h"
 #include "EntityManager.h"
 #include "Identity.h"
-#include "NetworkManager.h"
+#include "Network.h"
 #include "Bullet.h"
 #include "Aimbot.h"
 #include "World.h"

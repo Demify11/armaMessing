@@ -152,6 +152,8 @@ bool Overlay::InitImGui() {
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();
+	//ImFont* OurFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\Fonts\\Agency FB\\AGENCYR.TTF", 15.0f);
+
 
 	ImGui::StyleColorsDark();
 
@@ -193,12 +195,16 @@ void Overlay::Draw() {
 		ImGui::SetNextWindowSize(ImVec2(600, 400));
 		ImGui::Begin("Who Was In Paris",NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+		if (ImGui::Button("Visuals", ImVec2(80, 30)));
+		ImGui::SameLine();
+		ImGui::Button("Aimbot", ImVec2(80, 30));
+
 		ImGui::Checkbox("AimBot", &bAimBot);
-
+		
 		ImGui::Checkbox("Head Esp", &bHESP);
-
+		
 		ImGui::Checkbox("ESP", &bEsp);
-
+		
 		ImGui::Checkbox("No Sway", &bNoSway);
 		
 		
@@ -210,40 +216,7 @@ void Overlay::Draw() {
 	//---------------------------------------------------------------------------------------------------------
 
 
-	Entity TargetEntity;
-	// You would normally have some form of target selection.
-	// So you'd have a list of entities, and then sort.
-	// First you check if they are invis
-	// - then dead
-	// - then far away (like 2000m +)
-	// - then if they're in fov
-	// if all of these criterias are hit, you get the one closest to the crosshair / center.
-	// and then you do aimbot on that cunt.
-	// you can calculate that yourself.
-	// you already have everything needed
-	// 
-	//TargetEntity = Entities[2];
-	//auto Angles = CalculateAngles(CameraOn.GetHeadPosition2(ModuleBase), TargetEntity.GetHeadPosition(), CameraOn.GetGunAngles());
-
-	//auto LocalPlayer1 = GetLocalPlayer(WorldAddr);
-
-
-	
-	
-	
-
-
-
-	// 200 meter distance lol.
-	// 20 y 20 grid
-	// remember arma works with a xz-plane
-
-
-
-
-	//mutex.lock();	// wait until mutex is unlocked.
-	// copy over list, and unlock
-	//mutex.unlock();
+	Entity* TargetEntity = nullptr;
 
 	//-------------------------------------------------------------------------------------------------------
 
@@ -263,28 +236,35 @@ void Overlay::Draw() {
 			TargetEntity = bestTarget(
 				g_Client->m_World.m_EntityManager.GetEntities(),
 				g_Client->m_World.m_EntityManager.GetVehicles(),
-				ModuleBase
-			);
+				ModuleBase);
 
-			//best target used to return an entity, which is better, but was changed to return an vector3 because of object slicing
-			// the function would return an entity which would cut off all the info for the vehicle.
+			if (TargetEntity) {
 
-			//CameraOn.Cache(true);
-			auto Angles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, TargetEntity.m_HeadPos, g_Client->m_World.m_LocalPlayer.GGunAngles);
 
-			auto ImprovedAngles = g_Client->m_World.m_Prediction.LeadPrediction(
-				TargetEntity.GetHeadPos(),
-				TargetEntity.GetVelocity(),
-				g_Client->m_World.m_LocalPlayer.m_Velocity,
-				g_Client->m_World.m_LocalPlayer.m_HeadPos,
-				g_Client->m_World.m_LocalPlayer.m_weapon.m_InitSpeed,
-				g_Client->m_World.m_LocalPlayer.m_weapon.m_Mag.m_AirFriction,
-				9.8f, 0.002f, 5.0f);
+				//best target used to return an entity, which is better, but was changed to return an vector3 because of object slicing
+				// the function would return an entity which would cut off all the info for the vehicle.
 
-			auto NewAngles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, ImprovedAngles, g_Client->m_World.m_LocalPlayer.GGunAngles);
+				//CameraOn.Cache(true);
+				auto Angles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, TargetEntity->m_HeadPos, g_Client->m_World.m_LocalPlayer.GGunAngles);
 
-			if (TargetEntity.GetHeadPos() != Vector3(0, 0, 0)) {
-				g_Client->m_World.m_LocalPlayer.WriteViewAngles(NewAngles);
+				float BulletSpeed = g_Client->m_World.m_LocalPlayer.m_weapon.m_InitSpeed;
+				if (BulletSpeed == 0.0f)
+					BulletSpeed = g_Client->m_World.m_LocalPlayer.m_weapon.m_Mag.m_MagazineSpeed;
+
+				auto ImprovedAngles = g_Client->m_World.m_Prediction.LeadPrediction(
+					TargetEntity->GetHeadPos(),
+					TargetEntity->GetVelocity(),
+					g_Client->m_World.m_LocalPlayer.m_Velocity,
+					g_Client->m_World.m_LocalPlayer.m_HeadPos,
+					BulletSpeed,
+					g_Client->m_World.m_LocalPlayer.m_weapon.m_Mag.m_AirFriction,
+					9.8f, 0.002f, 5.0f, g_Client->m_World.m_LocalPlayer.m_weapon.m_Zeroing);
+
+				auto NewAngles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, ImprovedAngles, g_Client->m_World.m_LocalPlayer.GGunAngles);
+
+				if (TargetEntity->GetHeadPos() != Vector3(0, 0, 0)) {
+					g_Client->m_World.m_LocalPlayer.WriteViewAngles(NewAngles);
+				}
 			}
 		}
 
@@ -293,7 +273,7 @@ void Overlay::Draw() {
 		HeadESP(g_Client->m_World.m_EntityManager.GetEntities(), WorldAddr, g_Client->m_World.m_EntityManager.GetVehicles());
 
 	if (bEsp)
-		ESP(g_Client->m_World.m_EntityManager.GetEntities(), WorldAddr, ModuleBase);
+		ESP(g_Client->m_World.m_EntityManager.GetEntities(), g_Client->m_World.m_EntityManager.GetVehicles(), WorldAddr, ModuleBase);
 
 	char Text[100];
 

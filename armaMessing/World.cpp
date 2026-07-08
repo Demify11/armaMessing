@@ -202,7 +202,7 @@ void World::Cache(bool State) {
 	CacheCamera(State);
 	CacheLocalPlayer(State);
 	CacheEntityList(State);
-	CacheBulletList(State);
+	//CacheBulletList(State);
 
 }
 
@@ -241,14 +241,14 @@ void Client::Cache(bool State) {
 		// used to check ptrs.
 
 		auto WorldBase = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::World);
-		auto NetworkManager = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2181628);
+		auto Network = Coms->ReadVirtual<UINT64>(ModuleBase + 0x2181628);
 
 		m_World.Init(WorldBase);
-		m_NetworkManager.m_Base = NetworkManager;
+		m_Network.m_Base = Network;
 
 		
 	}
-	m_NetworkManager.Cache(State);
+	m_Network.Cache(State);
 	m_World.Cache(State);
 }
 
@@ -258,7 +258,7 @@ bool World::IsInFOV(Vector3 pos) {
 	centre.y = m_Camera.CachedViewPort.y;
 
 	float distance = powf((pos.x - centre.x), 2) + powf((pos.y - centre.y), 2);
-	float radSqr = pow(400, 2);
+	float radSqr = pow(200, 2);
 
 	if (distance < radSqr) {
 		return true;

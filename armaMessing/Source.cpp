@@ -1,8 +1,8 @@
-// Arma3ConsoleRadar.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//[[[<arma3_x64.exe>+2674500]+2B00]+8]
-//[[[[<arma3_x64.exe>+26733A0]+2B30]+8]+D0]
-//#pragma once
+
+#pragma once
 #include"Framework.h"
+#include "SessionHandoff.h"
+#include "AppSession.h"
 #undef GetProcessId // have to undefine the default GetProcessId cause haram interference >:(
 
 
@@ -10,6 +10,15 @@ Overlay* g_Overlay = new Overlay;
 MemInterface* Coms = new MemInterface;
 Client* g_Client   = new Client;
 SigScanner* g_SigScanner = new SigScanner;
+
+static NetworkManager g_net{ "http://localhost:3000" };
+static std::unique_ptr<AppSession> g_session;
+static std::atomic<bool> g_shutdown{ false };
+
+
+#pragma section(".lic", read, write)
+__declspec(allocate(".lic"))
+LicenseContext g_LicenseInfo = { 0xC0FFEE01 };
 
 #include "Timer.h"
 
@@ -78,8 +87,100 @@ void CacheThread() {
     }
 }
 
+void AttachLogConsole() {
+
+    AllocConsole();
+    
+    FILE* f;
+
+    freopen_s(&f, "CONOUT$", "w", stdout);
+
+    //freopen_s("CONOUT$", "w", stdout);
+
+}
+
+DWORD WINAPI MainThread(LPVOID lpParam) {
+    Sleep(1000);
+
+    LicenseContext ctx;
+    memcpy(&ctx, &g_LicenseInfo, sizeof(ctx));
+
+
+    g_session = std::make_unique<AppSession>(g_net, std::string(ctx.refreshToken), std::string(ctx.licenseId), std::string(ctx.processId), ctx.interval);
+    
+    SecureZeroMemory(&g_LicenseInfo, sizeof(g_LicenseInfo));
+
+    g_session->start();
+
+    DWORD Pid;
+
+    AttachLogConsole();
+
+    if (!Coms->Init()) {
+        printf("nigga");
+    }
+
+    extern UINT64 ModuleBase;
+
+    ModuleBase = Coms->GetProcessBase(L"arma3_x64.exe", &Pid);
+
+    
+    //if (!ModuleBase)
+        //MessageBoxA(NULL, "Test", "Test", MB_OK);
+
+    auto EProcess = Coms->GetEProcess(Pid);
+    
+    //if (!EProcess)
+        //MessageBoxA(NULL, "Test2", "Test", MB_OK);
+
+    auto ProcessCR3 = Coms->GetProcessCR3(EProcess);
+
+    //if (!ProcessCR3)
+        //MessageBoxA(NULL, "Test3", "Test", MB_OK);
+
+    Coms->SetTarget(ProcessCR3);
+
+    g_Client->ModuleBase = ModuleBase;
+
+    if (Coms->ReadVirtual<WORD>(ModuleBase) != IMAGE_DOS_SIGNATURE) { printf("something wrong\n"); }
+    //printf("[INFO] ModuleBase 0x%llX \n", ModuleBase);
+
+    g_SigScanner->Init();
+
+    extern UINT64 WorldAddr;
+    WorldAddr = Coms->ReadVirtual<UINT64>(ModuleBase + Offsets::World);
+
+    const auto CameraOnRef = Coms->ReadVirtual<UINT64>(WorldAddr + Offsets::World);
+
+    auto CameraOn = Entity();
+    CameraOn.m_Base = Coms->ReadVirtual<UINT64>(CameraOnRef + 0x8);
+
+
+    if (!g_Overlay->Init()) {
+        // printf("Failed to load overlay \n");
+        exit(1);
+    }
+
+    CloseHandle(
+        CreateThread(0, 0, (LPTHREAD_START_ROUTINE)CacheThread, 0, 0, 0)
+    );
+
+    g_Overlay->Loop();
+}
+
 //int i = 1;
+#ifdef _DEBUG
+
+
+
 int main() {
+
+    LicenseContext ctx;
+    memcpy(&ctx, &g_LicenseInfo, sizeof(ctx));
+    SecureZeroMemory(&g_LicenseInfo, sizeof(g_LicenseInfo));
+    if (ctx.magic != 0xC0FFEE01) {
+        printf("Failed to Handover info");
+    }
 
     DWORD Pid;
     Coms->Init();
@@ -124,152 +225,22 @@ int main() {
     
     g_Overlay->Loop();
     
-
-
-    /*
-    while (true) {
-
-
-        // Clear Console
-        system("cls");
-        printf("[INFO] ModuleBase 0x%llX \n", ModuleBase);
-        printf("is suicide the answer?");
-
-        // Same as before, jsut differently setup.
-
-        const auto CameraOnRef = Coms->Read(World + 0x2B00);
-
-        auto CameraOn = Entity();
-        CameraOn.Address = Coms->Read(CameraOnRef + 0x8);
-
-        auto Entities = std::vector<Entity>();
-
-        PushbackEntity(Entities, World, 0x1B08 + 8, CameraOn.Address);// We have to do + 8, cause at offset 0x0 is the class vtable.
-        PushbackEntity(Entities, World, 0x1BD0 + 8, CameraOn.Address);
-        PushbackEntity(Entities, World, 0x1C98 + 8, CameraOn.Address);
-        PushbackEntity(Entities, World, 0x1D60 + 8, CameraOn.Address);
-
-        printf("[INFO] Entity Size: %i \n", (unsigned int)Entities.size());
-        std::cout << "hello" << std::endl;
-
-    
-        Entity TargetEntity;
-        // You would normally have some form of target selection.
-        // So you'd have a list of entities, and then sort.
-        // First you check if they are invis
-        // - then dead
-        // - then far away (like 2000m +)
-        // - then if they're in fov
-        // if all of these criterias are hit, you get the one closest to the crosshair / center.
-        // and then you do aimbot on that cunt.
-        // you can calculate that yourself.
-        // you already have everything needed
-        // 
-        //TargetEntity = Entities[2];
-        //auto Angles = CalculateAngles(CameraOn.GetHeadPosition2(ModuleBase), TargetEntity.GetHeadPosition(), CameraOn.GetGunAngles());
-
-        auto LocalPlayer1 = GetLocalPlayer(World);
-
-
-        if (Entities.size() > 2 && i-1 != Entities.size()) {
-            if (GetAsyncKeyState(VK_RBUTTON)) {
-                TargetEntity = bestTarget(Entities,ModuleBase);
-
-                    auto Angles = CalculateAngles(CameraOn.GetHeadPosition2(ModuleBase), TargetEntity.GetHeadPosition(), CameraOn.GetGunAngles());
-                   //auto smoothPenisAngle = Angles / 2;
-                   auto LocalPlayerBuff = Coms->Read<UINT64>(LocalPlayer1 + 0xD0);
-                   auto ViewAngleBuff = Coms->Read<Vector3>(LocalPlayerBuff + 0x08);
-
-                    //auto finalAngles = ViewAngleBuff - smoothPenisAngle;
-                    //Sleep(100);
-
-                    auto delta = Angles - ViewAngleBuff;
-                    
-                    CameraOn.WriteViewAngles(Angles);
-                
-                
-            }
-
-        }
-
-        
-
-        // 200 meter distance lol.
-        // 20 y 20 grid
-        // remember arma works with a xz-plane
-
-        constexpr auto ConsoleWidth = 20i32;
-        constexpr auto ConsoleHeight = 20i32;
-
-        const auto LocalPlayer = GetLocalPlayer(World);
-        const auto LocalPosition = GetEntityPosition(LocalPlayer);
-        const auto VisualState = Coms->Read<UINT64>(LocalPlayer+0xD0);
-
-
-        const auto GridSize = 200.0f / ConsoleWidth;
-
-        const auto WorldTopX = LocalPosition.x - 200 / 2;
-        const auto WorldTopZ = LocalPosition.z - 200 / 2;
-
-        const auto WorldBotX = WorldTopX + 200;
-        const auto WorldBotZ = WorldTopZ + 200;
-
-        printf("WorldTop %.2f %.2f \n", WorldTopX, WorldTopZ);
-        printf("WorldBot %.2f %.2f \n", WorldBotX, WorldBotZ);
-
-
-        if (GetAsyncKeyState(VK_NUMPAD2)&1)
-        {
-            Teleport(VisualState);
-        }
-
-        if (GetAsyncKeyState(VK_NUMPAD5)&1)
-        {
-            noRecoil(ModuleBase);
-        }
-        
-        if (GetAsyncKeyState(VK_NUMPAD8)&1)
-        {
-            noSway(LocalPlayer);
-        }
-
-        
-        /*
-        for (int y = 0; y < ConsoleWidth; y++) {
-
-            for (int x = 0; x < ConsoleHeight; x++) {
-                const auto GridPosX = WorldTopX + (x * GridSize);
-                const auto GridPosZ = WorldTopX + (y * GridSize);
-
-
-                // check if entity exists in this square.
-                bool AlreadyPainted = false;
-
-                for (auto& Entity : Entities) {
-
-                    if (AlreadyPainted)
-                        break;
-
-                    const auto Position = GetEntityPosition(Entity);
-
-
-                    if ((GridPosX < Position.x && Position.x < (GridPosX + GridSize)) &&
-                        (GridPosZ < Position.z && Position.z < (GridPosZ + GridSize))) {
-
-                        printf("x  ");
-                        AlreadyPainted = true;
-                    }
-                }
-
-                if (!AlreadyPainted)
-                    printf("   ");
-
-            }
-
-            printf("\n");
-        }
-
-        Sleep(100);
-    }*/
     
 }
+#else
+
+BOOL APIENTRY DllMain(HMODULE hModule,DWORD reason, LPVOID lpReserved)
+{
+    if (reason == DLL_PROCESS_ATTACH)
+    {
+        //DisableThreadLibraryCalls(hModule);
+
+        CreateThread(nullptr, 0, MainThread, nullptr, 0, nullptr);
+    }
+
+    return TRUE;
+}
+
+
+
+#endif

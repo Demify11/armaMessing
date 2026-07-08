@@ -19,6 +19,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{2f29b6a5-5b74-4190-b584-6244e883a282}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Networking">
+      <UniqueIdentifier>{3de9c195-1229-44b6-abd0-d8495df56bf8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -75,9 +78,6 @@
     <ClCompile Include="EntityManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NetworkManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Identity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -89,6 +89,15 @@
     </ClCompile>
     <ClCompile Include="Vehicle.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkManager.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="AppSession.cpp">
+      <Filter>Networking</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -161,7 +170,7 @@
     <ClInclude Include="EntityManager.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="NetworkManager.h">
+    <ClInclude Include="Network.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Identity.h">
@@ -175,6 +184,15 @@
     </ClInclude>
     <ClInclude Include="Vehicle.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkManager.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionHandoff.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="AppSession.h">
+      <Filter>Networking</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -25,15 +25,15 @@ void EntityManager::DetectAndUpdate() {
     std::unordered_set<uintptr_t> currentBases;
     m_Changed = false;
 
-    //  CHEAP
-    for (uint32_t offset : { Offsets::EntityListNearNear, Offsets::EntityListNear, Offsets::EntityListFar}) {
+    //  Cheaper than reading and building every time
+    for (uint32_t offset : { Offsets::EntityListNearNear, Offsets::EntityListNear, Offsets::EntityListFar}) { 
 
         auto Array = AutoArray(g_Client->m_World.m_Base + offset);
-
-        if (!Array.Allocate(Array.GetSize()))
+        auto ArrSize = Array.GetSize();
+        if (!Array.Allocate(ArrSize))
             return;
 
-        for (int i = 0; i < Array.GetSize(); i++) {
+        for (int i = 0; i < ArrSize; i++) {
 
             auto Base = Array.Get(i);
 
@@ -42,32 +42,53 @@ void EntityManager::DetectAndUpdate() {
 
             currentBases.insert(Base);
 
-            //Handle New entities
-            if (!knownBases.contains(Base)) {
-                if (Entity* e = Entity::Create(Base)) {
+            if (entityMap.contains(Base) || junkBases.contains(Base))
+                continue;
 
-                    entityMap.emplace(Base, std::move(e)); //this is faster
+            //We need to handle new entities
+            EntityType t = Entity::Classify(Base);
+
+            if (t == EntityType::Vehicle || t == EntityType::Player) {
+
+                if (Entity* e = Entity::Create(Base, t)) {
+
+                    entityMap.emplace(Base, e);
+
                     m_Changed = true;
                 }
             }
+            else {
+                junkBases.insert(Base);
+            }
+            
         }
     }
 
-    //Remove Dead Entities
+    //Remove the dead entities
     for (auto it = entityMap.begin(); it != entityMap.end(); ) {
+
         if (!currentBases.contains(it->first)) {
+            
+            delete it->second;
+
             it = entityMap.erase(it);
+
             m_Changed = true;
         }
         else {
-            ++it;
+           ++it;
         }
     }
 
-    //Save Latest State
-    knownBases = std::move(currentBases);
+    for (auto it = junkBases.begin(); it != junkBases.end(); ) {
 
-    //We Rebuild
+        if (!currentBases.contains(*it)) it = junkBases.erase(it);
+        else ++it;
+
+    }
+
+
+    //We rebuild, itterating over vectors is faster than itterating on maps
     if (m_Changed)
         RebuildVectors();
 }

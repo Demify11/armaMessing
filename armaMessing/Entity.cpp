@@ -4,6 +4,9 @@ void Entity::Cache(bool State) {	// FOR EACH ENTITY YOU DO 3 READS - 100 * 3
 
 	//auto Pre = Coms->GetReads();
 
+	if (!m_Base)
+		return;
+
 	CacheVisualState(State);	// 2 read
 //	CacheHeadPosition(State);	// 0 read
 //	CacheFeetPosition (State);	// 0 read
@@ -17,7 +20,7 @@ void Entity::Cache(bool State) {	// FOR EACH ENTITY YOU DO 3 READS - 100 * 3
 }
 
 void Entity::CacheDead(bool State) {
-	dead = !(Coms->ReadVirtual<UINT8>(m_Base + 0x5CC) & 1);
+	alive = !(Coms->ReadVirtual<UINT8>(m_Base + 0x5CC) & 1);
 }
 
 
@@ -75,7 +78,7 @@ void Entity::CacheHeadPosition2(bool State) {
 
 
 bool Entity::GetDead() {
-	return dead;
+	return alive;
 }
 
 void Entity::InitNetworkId()
@@ -85,9 +88,9 @@ void Entity::InitNetworkId()
 	if (m_NetworkId != -1 || HasName == false) {
 
 	
-		auto it = g_Client->m_NetworkManager.Identities.find(m_NetworkId);
+		auto it = g_Client->m_Network.Identities.find(m_NetworkId);
 
-		if (it != g_Client->m_NetworkManager.Identities.end()) {
+		if (it != g_Client->m_Network.Identities.end()) {
 			m_Name = it->second.m_Name;
 		}
 	}
@@ -204,24 +207,21 @@ std::string Entity::ReadCategory(UINT64 base) {
 	return category;
 }
 
-Entity* Entity::Create(UINT64 base) {
-	const std::string category = ReadCategory(base);
-
-	Entity* e;
-	EntityType t;
-
+EntityType Entity::Classify(UINT64 base) {
+	const std::string category = ReadCategory(base); // the expensive read
 	if (category == "carx") {
-		e = new Vehicle;   
-		t = EntityType::Vehicle;
+		std::cout << "Entity Car" << std::endl;
+		return EntityType::Vehicle;
 	}
-	else if (category == "soldier") {
-		e = new Entity();
-		t = EntityType::Player;
+	if (category == "soldier") {
+		std::cout << "Soldier" << std::endl;
+		return EntityType::Player;
 	}
-	else {
-		e = new Entity();
-		t = EntityType::Junk;
-	}
+	return EntityType::Junk;
+}
+
+Entity* Entity::Create(UINT64 base, EntityType t) {
+	Entity* e = (t == EntityType::Vehicle) ? new Vehicle : new Entity();
 
 	e->m_Base = base;
 	e->type = t;
@@ -277,8 +277,12 @@ float LocalPlayer::GetInitSpeed() {
 }
 
 void LocalPlayer::CacheLocal(bool State) {
-	Cache(State); //it doesnt cache the whole
-	//CacheWeapon(State);
+	
+	if (!m_Base)
+		return;
+	
+	Entity::Cache(State); //it doesnt cache the whole
+	CacheWeapon(State);
 	CacheGunAngles(State);
 }
 
