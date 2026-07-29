@@ -140,10 +140,13 @@ Vector3 CalculateAngles(Vector3 Local, Vector3 Target, Vector3 GunAngles) {
     // so the gunangles, are an offset of your current aim.
     // so let's say you're aiming 60 degrees on yaw.
     // then the gun is offsetted by 2 degrees.
-    // Here we need the atan stuff you were dealing with. to combine these two values.
+    // Here we need the atan stuff you were dealing 
+    // with. to combine these two values.
+
+        // fucking english keyboard get that subnliigme shit out nig <-- written by demetri pls dont kill me eu
 
     // This is our current view angle.
-    float ViewAngle = atan2f(Angles.x, Angles.z);
+    float ViewAngle = atan2f(Angles.x, Angles.z);   
 
     // Now we get were the gun is offset to
     float GunAngle = atan2f(GunAngles.x, GunAngles.z);
@@ -162,9 +165,9 @@ Vector3 CalculateAngles(Vector3 Local, Vector3 Target, Vector3 GunAngles) {
     // yeah, switching values always best try lol
     // we havent' taken into consideration the y rn BIT OF PROOFCORE
     Angles = {
-        sin(RealAngle),
-        GunAngles.y + Angles.y,
-        cos(RealAngle)
+        sin(RealAngle), // 2D VEC-Direction X,
+        GunAngles.y + Angles.y, // Radians
+        cos(RealAngle)  // 2D VEC-Direction Z
     };
 
     // you wanna do the sway / recoil comp stuff now?
@@ -204,9 +207,18 @@ Vector3 CalculateAngles(Vector3 Local, Vector3 Target, Vector3 GunAngles) {
     // yessir.
     // we can test what happens if we put in a value that's not normalized.
 
-    return Angles;
-
+    return Angles; // I deleted it; oh; lol. Okay you need a couple of things; you need to decide how you want to implement your smoohting; 
 }
+/*
+* I wanted to do some thing called critically damped spring smoothing/aimassist
+* but fuck that
+* ill just do this // thats gay as fuck. let me see what this is ^^
+t Seems pretty cool; but I don't think you need to do all that to get smoothing; you just want this curve essentially; and way to increase or decrease the duration (D) and intensity (I) 
+// please discord call this is aids.
+//also that video from before was critically damped spring, 
+u
+*/
+
 
 UINT64 GetLocalPlayer(const UINT64& World) {
     const auto LocalPlayerLink = Coms->ReadVirtual<UINT64>(World + 0x2C20);
@@ -265,6 +277,79 @@ void noRecoil(const UINT64& ModuleBase)
     }
 
 
+}
+
+// Config needed
+// - Weight
+// - TimeToTarget
+static Vector3 s_vel = { 0, 0, 0 };
+
+float WrapPi(float a) {
+    a = fmodf(a + 3.14159265f, 6.28318530f);
+    if (a < 0.f) a += 6.28318530f;
+    return a - 3.14159265f;
+}
+
+float YawFromHybrid(const Vector3& h) {
+    return atan2f(h.x, h.z);
+}
+
+Vector3 HybridFromYawPitch(float yaw, float pitch) {
+    return Vector3(sinf(yaw), pitch, cosf(yaw));
+}
+float SmoothDamp(float current, float target, float& vel,
+    float smoothTime, float dt) {
+    // smoothTime = roughly how long, in seconds, to reach the target
+    float omega = 2.f / smoothTime;
+
+    float x = omega * dt;
+    // Padé approximation of exp(-x) — cheaper than calling expf every frame
+    float exp = 1.f / (1.f + x + 0.48f * x * x + 0.235f * x * x * x);
+
+    float change = current - target;
+    float temp = (vel + omega * change) * dt;
+
+    vel = (vel - omega * temp) * exp;
+    return target + (change + temp) * exp;
+}
+
+float SmoothDampAngle(float cur, float target, float& vel,
+    float smoothTime, float dt) {
+    target = cur + WrapPi(target - cur);   // <-- the only addition
+    return SmoothDamp(cur, target, vel, smoothTime, dt);
+}
+
+AimSmoother g_AimSmoother;
+Vector3 AimSmoother::Update(Vector3 cur, Vector3 tgt, float dt, float smoothTime) {
+    if (smoothTime < 1e-4f) smoothTime = 1e-4f;  // avoid omega = inf -> snap
+    if (dt <= 0.f) return cur;                    // nothing to integrate this frame
+
+    float curYaw = atan2f(cur.x, cur.z);          // live view yaw
+    float tgtYaw = atan2f(tgt.x, tgt.z);          // target yaw
+
+    float yaw = SmoothDampAngle(curYaw, tgtYaw, yawVel, smoothTime, dt);
+    float pitch = SmoothDamp(cur.y, tgt.y, pitchVel, smoothTime, dt);
+
+    const float HalfPi = 1.57079633f;
+    pitch = fmaxf(-HalfPi, fminf(HalfPi, pitch)); // real clamp
+
+    return Vector3(sinf(yaw), pitch, cosf(yaw));  // back to (dirX, pitch, dirZ)
+}
+
+
+Vector3 SmoothingUnderdamped(Vector3 CurrentAngles, Vector3 TargetAngles, float Time, float TimeToTarget) {
+    constexpr float Weight = 2.5f;
+    float TempPercentage = Time / TimeToTarget;
+    float Percentage = 1 - expf(-Weight * TempPercentage) * (cosf(Weight * TempPercentage) + sin(Weight * TempPercentage));
+    auto Result = CurrentAngles + (TargetAngles - CurrentAngles) * Percentage;
+    // clamp your stuff; icbf
+    if (Result.y > 3.1415 / 2) {
+        __debugbreak();
+    }
+    else if (Result.y < -(3.1415 / 2)) {
+        __debugbreak();
+    }
+    return Result;
 }
 
 Entity* bestTarget(std::vector<Entity*> entities, std::vector<Vehicle*> Vehicles, UINT64 ModuleBase)

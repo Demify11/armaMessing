@@ -1,6 +1,7 @@
 #pragma once
 
 #undef CreateWindow
+#define IMGUI_DEFINE_MATH_OPERATORS
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -27,6 +28,8 @@ public:
 	ID3D11DeviceContext*	m_Context;
 	IDXGISwapChain*			m_SwapChain;
 	ID3D11Device*			m_Device;
+
+	Form m_form;
 
 public:
 	Overlay();

@@ -46,6 +46,18 @@ bool Overlay::Init() {
 	if (!InitImGui())
 		return false;
 
+	static bool  g_Enabled = false;
+	static float g_Fov = 90.f;
+	
+	{
+		Tab& aim = m_form.AddTab("A", "Aim");
+		Group& general = aim.AddGroup("General");
+		general.Add<Button>("Reset", [] { g_Fov = 90.f; });
+
+		Tab& visuals = m_form.AddTab("V", "Visuals");
+		visuals.AddGroup("ESP").Add<Text>("nothing here yet");
+	}
+
     return true;
 }
 
@@ -151,9 +163,12 @@ bool Overlay::InitImGui() {
 	ImGui::CreateContext();
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.Fonts->AddFontDefault();
-	//ImFont* OurFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\Fonts\\Agency FB\\AGENCYR.TTF", 15.0f);
+	ImGuiStyle& Style = ImGui::GetStyle();
+	auto& Colors = Style.Colors;
+	//io.Fonts->AddFontDefault();
+	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\OCRAEXT.TTF", 15.0f);
 
+	ImVec4* colors = ImGui::GetStyle().Colors;
 
 	ImGui::StyleColorsDark();
 
@@ -188,30 +203,62 @@ void Overlay::Draw() {
 	static bool bAimBot = false;
 	static bool bHESP = false;
 	static bool bEsp = false;
+	static int MenuIndex = 0;
+
+	if (g_shutdown.exchange(false)) {
+		g_session.reset();   // joins the thread, best-effort /kill on the process
+		
+		TerminateProcess(GetCurrentProcess(),0);; //make a proper way to exit process, dont rlly want to call getcurrentprocess();
+	}
 
 	if (m_ShowMenu) {
-
+		//ImGui::ShowStyleEditor();
 		// Put this in it's own function, or else.
+		/*
 		ImGui::SetNextWindowSize(ImVec2(600, 400));
 		ImGui::Begin("Who Was In Paris",NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-		if (ImGui::Button("Visuals", ImVec2(80, 30)));
-		ImGui::SameLine();
-		ImGui::Button("Aimbot", ImVec2(80, 30));
+		ImVec2 s = ImVec2(ImGui::GetWindowSize().x - ImGui::GetStyle().WindowPadding.x * 2, ImGui::GetWindowSize().y - ImGui::GetStyle().WindowPadding.y * 2);
+		ImVec2 p = ImVec2(ImGui::GetWindowPos().x + ImGui::GetStyle().WindowPadding.x, ImGui::GetWindowPos().y + ImGui::GetStyle().WindowPadding.y);
 
-		ImGui::Checkbox("AimBot", &bAimBot);
+		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + 780, p.y + 450), ImColor(29, 30, 34), 10);//bg
+		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + 780, p.y + 60), ImColor(19, 20, 22), ImDrawFlags_RoundCornersTop, 3);//upp
+		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y + 65), ImVec2(p.x + 65, p.y + 450), ImColor(19, 20, 22), ImDrawFlags_RoundCornersLeft, 4);//left
+		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x + 70, p.y + 65), ImVec2(p.x + 780, p.y + 450), ImColor(19, 20, 22), ImDrawFlags_RoundCornersLeft, 8);//right
+		/*
+		if (ImGui::Button("Visuals", ImVec2(80, 30))) {
+			MenuIndex = 0;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Aimbot", ImVec2(80, 30))) {
+			MenuIndex = 1;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Misc", ImVec2(80, 30))) {
+			MenuIndex = 2;
+		}
+
+		switch (MenuIndex)
+		{
+		case 0:
+			ImGui::Checkbox("Head Esp", &bHESP);
+			ImGui::Checkbox("ESP", &bEsp);
+			break;
+		case 1:
+			ImGui::Checkbox("AimBot", &bAimBot);
+			break;
+
+		case 2:
+			ImGui::Checkbox("No Sway", &bNoSway);
+			ImGui::Checkbox("No Recoil", &bNoRecoil);
+			break;
+		}
 		
-		ImGui::Checkbox("Head Esp", &bHESP);
-		
-		ImGui::Checkbox("ESP", &bEsp);
-		
-		ImGui::Checkbox("No Sway", &bNoSway);
-		
-		
-		ImGui::Checkbox("No Recoil", &bNoRecoil);
 
 		ImGui::End();
-
+		*/
+		
+		m_form.Draw();
 	}
 	//---------------------------------------------------------------------------------------------------------
 
@@ -230,6 +277,8 @@ void Overlay::Draw() {
 	}
 	if (bAimBot) {
 		
+		static float time = 0.0f;
+
 		if (GetAsyncKeyState(VK_LCONTROL)) {
 			//This function now returns pointer, instead of copy Its better and gives no errors
 			//since we now use UniquePtr which is not copyable.
@@ -238,8 +287,20 @@ void Overlay::Draw() {
 				g_Client->m_World.m_EntityManager.GetVehicles(),
 				ModuleBase);
 
-			if (TargetEntity) {
+			if (TargetEntity != g_AimSmoother.PrevTarget) {
+				g_AimSmoother.havePrev = false;   // new target, no velocity history
+				g_AimSmoother.yawVel = 0.f;       // also clear filter momentum so it
+				g_AimSmoother.pitchVel = 0.f;     // eases in cleanly instead of lurching
+			}
+			g_AimSmoother.PrevTarget = TargetEntity;
+			
+			static const float TimeToTarget = 1.0f;
 
+			time = time <= TimeToTarget ? time + ImGui::GetIO().DeltaTime : time;
+			
+
+			if (TargetEntity) {
+					
 
 				//best target used to return an entity, which is better, but was changed to return an vector3 because of object slicing
 				// the function would return an entity which would cut off all the info for the vehicle.
@@ -260,12 +321,37 @@ void Overlay::Draw() {
 					g_Client->m_World.m_LocalPlayer.m_weapon.m_Mag.m_AirFriction,
 					9.8f, 0.002f, 5.0f, g_Client->m_World.m_LocalPlayer.m_weapon.m_Zeroing);
 
-				auto NewAngles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, ImprovedAngles, g_Client->m_World.m_LocalPlayer.GGunAngles);
+				//---
+				const float kSmoothTime = 0.05f;
+				float dt = ImGui::GetIO().DeltaTime;
+				Vector3 aimVel = { 0,0,0 };
+				if (g_AimSmoother.havePrev && dt > 0.f) {
+					aimVel = (ImprovedAngles - g_AimSmoother.prevAimPoint) / dt;
+				}
+				g_AimSmoother.prevAimPoint = ImprovedAngles;
+				g_AimSmoother.havePrev = true;
+
+				Vector3 leadPoint = ImprovedAngles + aimVel * kSmoothTime; //must be the same as in smoothed
+
+				auto NewAngles = CalculateAngles(g_Client->m_World.GetCamera()->CachedViewPosition, leadPoint, g_Client->m_World.m_LocalPlayer.GGunAngles);
+
+				auto Front = g_Client->m_World.GetCamera()->CachedViewAside;
+				
+				//auto SmoothingAngles = SmoothingUnderdamped(Vector3(Front.x, g_Client->m_World.m_LocalPlayer.GetPitch(), Front.z), NewAngles, time, TimeToTarget);
+
+				Vector3 current = { Front.x, g_Client->m_World.m_LocalPlayer.GetPitch(),Front.z };
+				Vector3 smoothed = g_AimSmoother.Update(current, NewAngles, dt, kSmoothTime);
 
 				if (TargetEntity->GetHeadPos() != Vector3(0, 0, 0)) {
-					g_Client->m_World.m_LocalPlayer.WriteViewAngles(NewAngles);
+					g_Client->m_World.m_LocalPlayer.WriteViewAngles(smoothed);
 				}
 			}
+			else {
+				g_AimSmoother.havePrev = false;
+			}
+		}
+		else {
+			time = 0.0f;
 		}
 
 	}

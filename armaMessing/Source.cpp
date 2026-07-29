@@ -1,8 +1,7 @@
 
 #pragma once
-#include"Framework.h"
-#include "SessionHandoff.h"
-#include "AppSession.h"
+#include "Framework.h"
+
 #undef GetProcessId // have to undefine the default GetProcessId cause haram interference >:(
 
 
@@ -11,14 +10,15 @@ MemInterface* Coms = new MemInterface;
 Client* g_Client   = new Client;
 SigScanner* g_SigScanner = new SigScanner;
 
-static NetworkManager g_net{ "http://localhost:3000" };
-static std::unique_ptr<AppSession> g_session;
-static std::atomic<bool> g_shutdown{ false };
+static NetworkManager g_net{ "https://keygen-server-production.up.railway.app" };
+std::unique_ptr<AppSession> g_session;
+std::atomic<bool> g_shutdown{ false };
 
 
 #pragma section(".lic", read, write)
 __declspec(allocate(".lic"))
-LicenseContext g_LicenseInfo = { 0xC0FFEE01 };
+LicenseContext g_LicenseInfo = {
+};
 
 #include "Timer.h"
 
@@ -105,12 +105,18 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     LicenseContext ctx;
     memcpy(&ctx, &g_LicenseInfo, sizeof(ctx));
 
-
+    
     g_session = std::make_unique<AppSession>(g_net, std::string(ctx.refreshToken), std::string(ctx.licenseId), std::string(ctx.processId), ctx.interval);
     
-    SecureZeroMemory(&g_LicenseInfo, sizeof(g_LicenseInfo));
+    g_session->setOnSessionEnd([](const std::string& code) {
+        g_shutdown = true;
+        }
+    );
 
+    
     g_session->start();
+    
+    SecureZeroMemory(&g_LicenseInfo, sizeof(g_LicenseInfo));
 
     DWORD Pid;
 
@@ -168,25 +174,29 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     g_Overlay->Loop();
 }
 
-//int i = 1;
-#ifdef _DEBUG
-
-
 
 int main() {
 
     LicenseContext ctx;
     memcpy(&ctx, &g_LicenseInfo, sizeof(ctx));
-    SecureZeroMemory(&g_LicenseInfo, sizeof(g_LicenseInfo));
-    if (ctx.magic != 0xC0FFEE01) {
-        printf("Failed to Handover info");
-    }
 
+
+    /*g_session = std::make_unique<AppSession>(g_net, std::string(ctx.refreshToken), std::string(ctx.licenseId), std::string(ctx.processId), ctx.interval);
+
+    g_session->setOnSessionEnd([](const std::string& code) {
+        g_shutdown = true;
+        }
+    );
+
+    g_session->start();
+
+    SecureZeroMemory(&g_LicenseInfo, sizeof(g_LicenseInfo));
+    */
     DWORD Pid;
     Coms->Init();
     extern UINT64 ModuleBase;
 
-    ModuleBase = Coms->GetProcessBase(L"arma3_x64.exe",&Pid);
+    ModuleBase = Coms->GetProcessBase(L"arma3_x64.exe", &Pid);
 
     auto EProcess = Coms->GetEProcess(Pid);
 
@@ -213,34 +223,34 @@ int main() {
     auto CameraOn = Entity();
     CameraOn.m_Base = Coms->ReadVirtual<UINT64>(CameraOnRef + 0x8);
 
-    
+
     if (!g_Overlay->Init()) {
-       // printf("Failed to load overlay \n");
+        // printf("Failed to load overlay \n");
         exit(1);
     }
-    
+
     CloseHandle(
         CreateThread(0, 0, (LPTHREAD_START_ROUTINE)CacheThread, 0, 0, 0)
     );
-    
-    g_Overlay->Loop();
-    
-    
-}
-#else
 
-BOOL APIENTRY DllMain(HMODULE hModule,DWORD reason, LPVOID lpReserved)
-{
-    if (reason == DLL_PROCESS_ATTACH)
-    {
-        //DisableThreadLibraryCalls(hModule);
+    g_Overlay->Loop();
+
+
+}
+
+/*
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+    
+    
+
+    if (reason == DLL_PROCESS_ATTACH) {
+
+        MessageBoxA(NULL, "ok", "ok", MB_OK);
 
         CreateThread(nullptr, 0, MainThread, nullptr, 0, nullptr);
     }
 
     return TRUE;
-}
+}*/
 
 
-
-#endif

@@ -237,6 +237,7 @@ public:
 	void InitNetworkId();
 	virtual void Cache(bool State);
 	void WriteViewAngles(Vector3 Angles);
+	float GetPitch();
 	static std::string ReadCategory(UINT64 base);
 	static EntityType Classify(UINT64 base);
 	virtual void OnClassify() {};

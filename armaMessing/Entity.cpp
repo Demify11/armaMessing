@@ -178,7 +178,7 @@ void Entity::WriteViewAngles(Vector3 Angles) {
 	// If you look in the visual state structure, there's a lot of view matrixes.
 	// some of them are inverse.
 	// if you write viewangles only on the 0x20 and 0x28, the weapon kinda rotates, and goes out of place.
-	// it causes the aimbot to jitter. if you write all the view matrixes, it doesnt jitter.
+	// it causes the to jitter. if you write all the view matrixes, it doesnt jitter.
 	Coms->WriteVirtual<float>(VisualState1 + 0x20, Angles.x);
 	Coms->WriteVirtual<float>(VisualState1 + 0x10, -Angles.x);
 	Coms->WriteVirtual<float>(VisualState1 + 0x9C, Angles.x);
@@ -192,6 +192,16 @@ void Entity::WriteViewAngles(Vector3 Angles) {
 	Coms->WriteVirtual<float>(VisualState1 + 0x08, Angles.z);
 	Coms->WriteVirtual<float>(VisualState1 + 0x94, Angles.z);
 	Coms->WriteVirtual<float>(VisualState1 + 0xB4, Angles.z);
+}
+
+
+float Entity::GetPitch() {
+
+	const auto RealPlayer = Coms->ReadVirtual<UINT64>(m_Base + 0x1118);    // I think the offset is 0x1080
+
+	const auto PitchHeap = Coms->ReadVirtual<UINT64>(RealPlayer + 0x1A0); // find what this is
+
+	return Coms->ReadVirtual<float>(PitchHeap + 0x4);
 }
 
 std::string Entity::ReadCategory(UINT64 base) {

@@ -5,12 +5,12 @@ void AppSession::run() {
 
     std::string err;
     if (!net_.refresh(refreshToken_, err)) {   // first access token
-        onSessionEnd_("auth");                  // can't even start -> stop
+        onSessionEnd_("authFail");
         return;
     }
 
     auto lastRefresh = steady_clock::now();
-    const auto refreshEvery = minutes(45);      // well inside the 1h expiry
+    const auto refreshEvery = minutes(2);// well inside the 1h expiry
     int consecutiveErrors = 0;
 
     running_ = true;
@@ -18,7 +18,7 @@ void AppSession::run() {
         // Refresh the access token before it can expire.
         if (steady_clock::now() - lastRefresh >= refreshEvery) {
             if (!net_.refresh(refreshToken_, err)) {
-                onSessionEnd_("auth");          // revoked or refresh expired -> session over
+                onSessionEnd_("authFail"); // session over
                 break;
             }
             lastRefresh = steady_clock::now();
@@ -34,6 +34,8 @@ void AppSession::run() {
         }
 
         const int periodSec = std::max(interval_ / 2, 15);
-        for (int i = 0; i < periodSec && running_; ++i) std::this_thread::sleep_for(seconds(1));
+        for (int i = 0; i < periodSec && running_; ++i){
+            std::this_thread::sleep_for(seconds(1));
+        }
     }
 }

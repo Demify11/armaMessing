@@ -45,7 +45,12 @@
 #include "misc.h"
 #include "SigScanner.h"
 
+#include "SessionHandoff.h"
+#include "AppSession.h"
+#include "Globals.h"
+
 /* Overlay & Rendering */
+#include "Form.h"
 #include "Overlay.h"
 
 

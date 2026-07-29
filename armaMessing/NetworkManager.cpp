@@ -1,5 +1,6 @@
 
 #include "NetworkManager.h"
+#define CURL_STATICLIB
 #include <curl/curl.h>
 
 NetworkManager::NetworkManager(std::string baseUrl) 
@@ -118,7 +119,7 @@ bool NetworkManager::refresh(const std::string& refreshToken, std::string& error
     Response res = request("POST", "/refresh", &body);
     if (!res.error.empty()) { errorOut = res.error; return false; }
     if (res.status == 200 && res.body.contains("token")) {
-        sessionToken_ = res.body["token"].get<std::string>();  // adopt the fresh access token
+        sessionToken_ = res.body["token"].get<std::string>(); // fresh access token
         return true;
     }
     errorOut = res.body.contains("error") ? res.body["error"].get<std::string>()

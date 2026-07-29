@@ -99,6 +99,18 @@
     <ClCompile Include="AppSession.cpp">
       <Filter>Networking</Filter>
     </ClCompile>
+    <ClCompile Include="Form.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Tab.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Group.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Element.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memold.h">
@@ -193,6 +205,21 @@
     </ClInclude>
     <ClInclude Include="AppSession.h">
       <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Form.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Tab.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Group.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Element.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -28,7 +28,7 @@ public:
     }
 
 private:
-    void run();   // the loop you already wrote, moved here verbatim
+    void run();
 
     NetworkManager& net_;
     std::string refreshToken_, licenseId_, processId_;
