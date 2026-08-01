@@ -5,7 +5,9 @@ class Group
 {
 	std::string m_Name;
 	std::vector<Element*> m_Elements;
-    float m_Height = 200.f;
+    float m_Height = 200.0f;
+    float m_Provisional = 200.0f;
+    float m_Measured = 0.0f;
 
 public:
 
@@ -18,6 +20,7 @@ public:
 
     void SetHeight(float h) { m_Height = h; }
     float GetHeight() const { return m_Height; }
+    float Height();
 
     template <typename T, typename... Args>
     T& Add(Args&&... args) {

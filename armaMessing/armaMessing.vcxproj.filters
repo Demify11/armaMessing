@@ -22,6 +22,9 @@
     <Filter Include="Networking">
       <UniqueIdentifier>{3de9c195-1229-44b6-abd0-d8495df56bf8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fonts">
+      <UniqueIdentifier>{394346e1-a4f4-4019-9743-5a6878287fb0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -109,6 +112,9 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="Element.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Fonts.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -221,5 +227,22 @@
     <ClInclude Include="Element.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Fonts.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="IconsFontAwesome5.h">
+      <Filter>Fonts</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Inter_18pt-Medium.ttf">
+      <Filter>Fonts</Filter>
+    </Font>
+    <Font Include="Inter_18pt-SemiBold.ttf">
+      <Filter>Fonts</Filter>
+    </Font>
+    <Font Include="fa-solid-900.ttf">
+      <Filter>Fonts</Filter>
+    </Font>
   </ItemGroup>
 </Project>

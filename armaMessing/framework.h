@@ -24,6 +24,7 @@
 /* DirectX & ImGui */
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include "imgui_internal.h"
 #include "imgui.h"
 #include <d3d11.h>
 
@@ -50,6 +51,7 @@
 #include "Globals.h"
 
 /* Overlay & Rendering */
+#include "Fonts.h"
 #include "Form.h"
 #include "Overlay.h"
 

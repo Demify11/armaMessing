@@ -7,7 +7,8 @@ Tab& Form::AddTab(std::string icon, std::string name) {
 
 void Form::Draw()
 {
-    ImGui::Begin("menu");
+    ImGui::SetNextWindowSize(ImVec2(600, 400));
+    ImGui::Begin("menu", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::BeginChild("##sidebar", ImVec2(50, 0), true);
 
@@ -16,7 +17,7 @@ void Form::Draw()
         ImGui::PushID(i);
 
         if (selected)
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.45f, 0.20f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(168.0f/255, 52.0f/255, 235.0f/255, 1.f));
 
         if (ImGui::Button(m_Tabs[i].Icon().c_str(), ImVec2(31, 31)))
             m_Selected = i;
@@ -30,7 +31,7 @@ void Form::Draw()
 
     ImGui::SameLine();
 
-    // --- page for the selected tab ---
+    // page for the selected tab
     ImGui::BeginChild("##page", ImVec2(0, 0), false); // fill remaining space
     if (m_Selected >= 0 && m_Selected < (int)m_Tabs.size())
         m_Tabs[m_Selected].DrawPage();

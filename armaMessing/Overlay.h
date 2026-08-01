@@ -48,6 +48,7 @@ private:
 	bool CreateWindow();
 	bool InitDirectX();
 	bool InitImGui();
+	void CustomColors(ImGuiStyle* dst);
 	bool InitDim();
 
 public:

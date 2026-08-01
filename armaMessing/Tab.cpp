@@ -23,7 +23,7 @@ void Tab::DrawPage() {
         ImGui::SetCursorPos(ImVec2(x, y));
         g.Draw(colW);
 
-        y += g.GetHeight() + gap;                       // advance only this column
+        y += g.Height() + gap;                       // advance only this column
         ++index;
     }
 
