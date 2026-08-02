@@ -1,5 +1,8 @@
+#pragma once
 #include "Form.h"
 #include "imgui.h"
+#include "Widgets.h"
+#include "Fonts.h"
 
 Tab& Form::AddTab(std::string icon, std::string name) {
     return m_Tabs.emplace_back(std::move(icon), std::move(name));
@@ -7,36 +10,58 @@ Tab& Form::AddTab(std::string icon, std::string name) {
 
 void Form::Draw()
 {
-    ImGui::SetNextWindowSize(ImVec2(600, 400));
-    ImGui::Begin("menu", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-    ImGui::BeginChild("##sidebar", ImVec2(50, 0), true);
+    ImGui::SetNextWindowSize(ImVec2(SizeX, SizeY));
+    ImGui::Begin("##menu", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | 
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_NoScrollWithMouse |
+        ImGuiWindowFlags_NoBackground);
 
-    for (int i = 0; i < m_Tabs.size(); i++) {
-        const bool selected = (i == m_Selected);
-        ImGui::PushID(i);
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const ImVec2 p = ImGui::GetWindowPos();
+    const ImVec2 sz = ImGui::GetWindowSize();
+    const float  R = Layout::Rounding;
 
-        if (selected)
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(168.0f/255, 52.0f/255, 235.0f/255, 1.f));
+    dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + sz.y), Palette::PanelBg, R);
 
-        if (ImGui::Button(m_Tabs[i].Icon().c_str(), ImVec2(31, 31)))
-            m_Selected = i;
+    dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + Layout::HeaderH), Palette::HeaderBg, R, ImDrawFlags_RoundCornersTop);
 
-        if (selected)
-            ImGui::PopStyleColor();
+    dl->AddRectFilled(ImVec2(p.x, p.y + Layout::HeaderH),ImVec2(p.x + Layout::SidebarW, p.y + sz.y),Palette::HeaderBg, R, ImDrawFlags_RoundCornersBottomLeft);
 
-        ImGui::PopID();
+    // subtle depth hairlines
+    dl->AddLine(ImVec2(p.x + Layout::SidebarW, p.y + Layout::HeaderH), ImVec2(p.x + Layout::SidebarW, p.y + sz.y), IM_COL32(0, 0, 0, 90));
+    dl->AddLine(ImVec2(p.x + Layout::SidebarW, p.y + Layout::HeaderH), ImVec2(p.x + sz.x, p.y + Layout::HeaderH), IM_COL32(0, 0, 0, 90));
+
+    ImGui::PushFont(g_Fonts.Icons);
+    {
+        float tabY = Layout::HeaderH + 12.f;
+        for (int i = 0; i < (int)m_Tabs.size(); i++) {
+            ImGui::PushID(i);
+            ImGui::SetCursorPos(ImVec2((Layout::SidebarW - Layout::TabButton) * 0.5f, tabY));
+
+            if (UI::AccentTab("tab", m_Tabs[i].Icon().c_str(),
+                i == m_Selected,
+                ImVec2(Layout::TabButton, Layout::TabButton)))
+                m_Selected = i;
+
+            ImGui::PopID();
+            tabY += Layout::TabButton + 10.f;
+        }
     }
-    ImGui::EndChild();
+    ImGui::PopFont();
 
-    ImGui::SameLine();
+    // ---- content area ----
+    ImGui::SetCursorPos(ImVec2(Layout::SidebarW + Layout::ContentPad,
+        Layout::HeaderH + Layout::ContentPad));
+    ImGui::BeginChild("##content",ImVec2(sz.x - Layout::SidebarW - Layout::ContentPad * 2.f,sz.y - Layout::HeaderH - Layout::ContentPad * 2.f), false, ImGuiWindowFlags_NoScrollbar);
 
-    // page for the selected tab
-    ImGui::BeginChild("##page", ImVec2(0, 0), false); // fill remaining space
     if (m_Selected >= 0 && m_Selected < (int)m_Tabs.size())
         m_Tabs[m_Selected].DrawPage();
+
     ImGui::EndChild();
 
     ImGui::End();
+    ImGui::PopStyleVar();
 }
 

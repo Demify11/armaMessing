@@ -5,7 +5,6 @@ class Group
 {
 	std::string m_Name;
 	std::vector<Element*> m_Elements;
-    float m_Height = 200.0f;
     float m_Provisional = 200.0f;
     float m_Measured = 0.0f;
 
@@ -18,8 +17,29 @@ public:
             delete el;
     }
 
-    void SetHeight(float h) { m_Height = h; }
-    float GetHeight() const { return m_Height; }
+   // move: steal the buffer. vector's move leaves other.m_Elements EMPTY,
+// so the moved-from object's destructor deletes nothing — no double free.
+    Group(Group&& o) noexcept
+        : m_Name(std::move(o.m_Name)),
+        m_Elements(std::move(o.m_Elements)),
+        m_Provisional(o.m_Provisional),
+        m_Measured(o.m_Measured) {}
+
+    Group& operator=(Group&& o) noexcept {
+        if (this != &o) {
+            for (auto* el : m_Elements) delete el;   // free what we hold first
+            m_Name = std::move(o.m_Name);
+            m_Elements = std::move(o.m_Elements);
+            m_Provisional = o.m_Provisional;
+            m_Measured = o.m_Measured;
+        }
+        return *this;
+    }
+
+    // forbid copying — a shallow copy of owning raw pointers is the bug
+    Group(const Group&) = delete;
+    Group& operator=(const Group&) = delete;
+
     float Height();
 
     template <typename T, typename... Args>

@@ -117,6 +117,9 @@
     <ClCompile Include="Fonts.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="Widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memold.h">
@@ -232,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="IconsFontAwesome5.h">
       <Filter>Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="Widgets.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -11,19 +11,19 @@ void Tab::DrawPage() {
     const float startY = ImGui::GetCursorPosY();
     const float colW = (ImGui::GetContentRegionAvail().x - gap) / 2.f;
 
-    float leftY = startY; // independent pen for the left column
-    float rightY = startY; // independent pen for the right column
+    float leftY = startY; // These are the "pens" for the 2 colums, anton code
+    float rightY = startY;
 
     int index = 0;
     for (auto& g : m_Groups) {
         const bool  left = (index % 2 == 0);
-        const float x = left ? startX : startX + colW + gap;
-        float& y = left ? leftY : rightY;   // reference to the right pen
+        const float x = left ? startX : startX + colW + gap; //better if statements
+        float& y = left ? leftY : rightY;   //right pen
 
         ImGui::SetCursorPos(ImVec2(x, y));
         g.Draw(colW);
 
-        y += g.Height() + gap;                       // advance only this column
+        y += g.Height() + gap;
         ++index;
     }
 

@@ -295,6 +295,7 @@ secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Vehicle.cpp" />
     <ClCompile Include="Weapon.cpp" />
+    <ClCompile Include="Widgets.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -335,6 +336,7 @@ secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Vehicle.h" />
     <ClInclude Include="Weapon.h" />
+    <ClInclude Include="Widgets.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

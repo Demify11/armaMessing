@@ -1,4 +1,5 @@
 #include "Framework.h"
+#include "IconsFontAwesome5.h"
 
 
 UINT64 ModuleBase;
@@ -50,11 +51,12 @@ bool Overlay::Init() {
 	static float g_Fov = 90.f;
 	
 	{
-		Tab& aim = m_form.AddTab("A", "Aim");
+		Tab& aim = m_form.AddTab(ICON_FA_CROSSHAIRS, "Aim");
 		Group& general = aim.AddGroup("General");
 		general.Add<Button>("Reset", [] { g_Fov = 90.f; });
+		general.Add<SliderFloat>("FOV", &g_Fov, 0.f, 180.f);
 
-		Tab& visuals = m_form.AddTab("V", "Visuals");
+		Tab& visuals = m_form.AddTab(ICON_FA_EYE, "Visuals");
 		visuals.AddGroup("ESP").Add<Text>("nothing here yet");
 
 		//Tab& misc = m_form.AddTab("M", "Visuals");

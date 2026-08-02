@@ -12,5 +12,5 @@ void LoadFonts() {
     ImFontConfig icons_config;
     icons_config.MergeMode = false; // standalone, so we can PushFont it
     icons_config.PixelSnapH = true;
-    g_Fonts.Icons = io.Fonts->AddFontFromFileTTF("fonts/fa-solid-900.ttf", 20.0f, &icons_config, icon_ranges);
+    g_Fonts.Icons = io.Fonts->AddFontFromFileTTF("fa-solid-900.ttf", 20.0f, &icons_config, icon_ranges);
 }
