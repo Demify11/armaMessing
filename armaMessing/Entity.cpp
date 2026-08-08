@@ -219,7 +219,7 @@ std::string Entity::ReadCategory(UINT64 base) {
 
 EntityType Entity::Classify(UINT64 base) {
 	const std::string category = ReadCategory(base); // the expensive read
-	if (category == "carx") {
+	if (category == "carx" || category == "helicopterrtd") {
 		std::cout << "Entity Car" << std::endl;
 		return EntityType::Vehicle;
 	}

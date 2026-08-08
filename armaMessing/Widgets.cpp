@@ -143,6 +143,28 @@ namespace UI {
         return clicked;
     }
 
+    bool Rectfilled(const char* label, ImVec2 Size)
+    {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems) return false;
+
+        ImDrawList* dl = window->DrawList;
+        ImVec2 c = ImGui::GetCursorScreenPos();
+        dl->AddRectFilled(c, c + ImVec2(50, 20), ImGui::GetColorU32(Palette::Accent), 0.f);
+
+        ImVec2 pen = ImGui::GetCursorPos();
+        ImVec2 mouse = ImGui::GetMousePos();
+        ImVec2 winPos = ImGui::GetWindowPos();
+        ImVec2 mouseLocal = ImVec2(mouse.x - winPos.x, mouse.y - winPos.y);
+
+        ImGui::Text("pen  (local): %.0f, %.0f", pen.x, pen.y);
+        ImGui::Text("mouse(local): %.0f, %.0f", mouseLocal.x, mouseLocal.y);
+        ImGui::Text("mouse(screen):%.0f, %.0f", mouse.x, mouse.y);
+        ImGui::Text("window origin:%.0f, %.0f", winPos.x, winPos.y);
+
+        return false;
+    }
+
     bool AccentTab(const char* str_id, const char* icon, bool selected, ImVec2 size)
     {
         ImGuiWindow* window = ImGui::GetCurrentWindow();

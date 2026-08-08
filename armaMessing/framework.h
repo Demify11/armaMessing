@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <array>
+#include <algorithm>
 #include <map>
 #include <unordered_map>
 #include <TlHelp32.h>

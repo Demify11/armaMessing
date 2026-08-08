@@ -1,4 +1,5 @@
 #pragma once
+#include "imgui_tricks.hpp"
 #include "Tab.h"
 class Form
 {

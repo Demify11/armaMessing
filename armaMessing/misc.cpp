@@ -1,76 +1,5 @@
 #include "framework.h"
 
-
-void PushbackEntity(std::vector<Entity>& Vehicles,std::vector<Entity>& List, UINT64 World, UINT32 Offset, UINT64 LocalPlayer) {
-    /*
-    const auto ListEntry = Coms->ReadVirtual<UINT64>(World + Offset);
-
-    const auto ListSize = Coms->ReadVirtual<UINT32>(World + Offset + 0x8);
-
-    for (auto i = 0; i < ListSize; i++) {
-
-        const auto EntityEntry = Coms->ReadVirtual<UINT64>(ListEntry + (i * 0x8));
-        const auto CatagoryBuff = Coms->ReadVirtual<UINT64>(EntityEntry + 0x150);
-        const auto Catagory = Coms->ReadVirtual<UINT64>(CatagoryBuff + 0xD0);
-        std::string CatagoryString = Coms->ReadString(Catagory + 0x10);
-
-        if (CatagoryString == "carx") {
-            Vehicle Temp;
-            Temp.m_Base = EntityEntry;
-            //Vehicles.push_back(Temp);
-            continue;
-        }
-        if (CatagoryString == "invisible") {
-            continue;
-        }
-        if (EntityEntry == LocalPlayer)
-            continue;
-
-        Entity Temp;
-        Temp.m_Base = EntityEntry;
-
-        List.push_back(Temp);
-    }*/
-}
-
-void GatherEntitiesAndVehiclesAtOffset(uint64_t worldBase,uint32_t offset,uint64_t localPlayer,std::unordered_map<uintptr_t, Entity>& entities,std::unordered_map<uintptr_t, Entity>& vehicles)
-{/*
-    const auto listEntry = Coms->ReadVirtual<uint64_t>(worldBase + offset);
-    if (!listEntry) return;
-
-    const auto listSize = Coms->ReadVirtual<uint32_t>(worldBase + offset + 0x8);
-    if (listSize == 0 || listSize > 1024) return;
-
-    for (uint32_t i = 0; i < listSize; ++i) {
-        const auto entityBase = Coms->ReadVirtual<uint64_t>(listEntry + i * 0x8);
-        if (!entityBase || entityBase == localPlayer)
-            continue;
-
-        const auto catBuf = Coms->ReadVirtual<uint64_t>(entityBase + 0x150);
-        if (!catBuf) continue;
-
-        const auto catPtr = Coms->ReadVirtual<uint64_t>(catBuf + 0xD0);
-        if (!catPtr) continue;
-
-        const std::string category = Coms->ReadString(catPtr + 0x10);
-        if (category == "invisible") continue;
-
-        const bool alive = (Coms->ReadVirtual<UINT8>(entityBase + 0x5CC) & 1);
-        if (!alive == 0) continue;
-
-        if (category == "carx") {
-            Vehicle v;
-            v.m_Base = entityBase;
-            vehicles[entityBase] = v;
-            continue;
-        }
-
-        Entity e;
-        e.m_Base = entityBase;
-        entities[entityBase] = e;
-    }*/
-}
-
 Vector3 Screen;
 bool WorldToScreen(UINT64 Camera, Vector3 World, Vector3& Screen) {
 
@@ -533,17 +462,28 @@ void ESP(const std::vector<Entity*>& entityMap,const std::vector<Vehicle*>& vehi
 
         if (Camera->WorldToScreen(ent->GetFeetPosition(), ScreenPos)) {
 
-            float Width = 20;
-            float Height = 20;
+            Vector3 FeetWorld = ent->GetFeetPosition();
+            Vector3 HeadWorld = FeetWorld + Vector3(0, 0, 40.0f);
 
-            auto TopLX = ScreenPos.x - (Width/2);
-            auto TopLY = ScreenPos.y + (Height/2);
-            auto BotRX = ScreenPos.x + (Width/2);
-            auto BotRY = ScreenPos.y - (Height/2);
+            Vector3 FeetScreen, HeadScreen;
+            if (!Camera->WorldToScreen(FeetWorld, FeetScreen)) return;
+            
+            float depth = FeetScreen.z;
+            float Size = 1000.0f / depth;
+            Size = std::clamp(Size, 5.0f, 40.0f);
 
-            Draw->AddRect(ImVec2(TopLX, TopLY), ImVec2(BotRX, BotRY), ImColor(0, 0, 0), 0.0f, 0, 3.0f);
+            float Width = Size;
+            float Height = Size;
+
+            float CenterX = FeetScreen.x;
+            float CenterY = FeetScreen.y - Height * 0.5f; // lift box up off the feet, ImGui Y-down
+            
+            ImVec2 TopL(CenterX - Width * 0.5f, CenterY - Height * 0.5f);
+            ImVec2 BotR(CenterX + Width * 0.5f, CenterY + Height * 0.5f);
+
+            Draw->AddRect(TopL, BotR, ImColor(0, 0, 0), 0.0f, 0, 3.0f);
             // white inner line
-            Draw->AddRect(ImVec2(TopLX, TopLY), ImVec2(BotRX, BotRY), ImColor(220, 77, 1), 0.0f, 0, 1.5f);
+            Draw->AddRect(TopL, BotR, ImColor(220, 77, 1), 0.0f, 0, 1.5f);
 
         }
     }

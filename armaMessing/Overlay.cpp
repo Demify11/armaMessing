@@ -47,19 +47,29 @@ bool Overlay::Init() {
 	if (!InitImGui())
 		return false;
 
-	static bool  g_Enabled = false;
-	static float g_Fov = 90.f;
-	
+
 	{
 		Tab& aim = m_form.AddTab(ICON_FA_CROSSHAIRS, "Aim");
-		Group& general = aim.AddGroup("General");
-		general.Add<Button>("Reset", [] { g_Fov = 90.f; });
-		general.Add<SliderFloat>("FOV", &g_Fov, 0.f, 180.f);
+		Group& general = aim.AddGroup("Aimbot");
+		general.SetFullWidth();
+		general.Add<Checkbox>("Aimbot", &bAimBot);
+		//general.Add<Button>("Reset", [] { g_Fov = 90.f; });
+		general.Add<Button>("Notify", [] {
+			ImTricks::NotifyManager::AddNotify("Notify Test", ImTrickNotify_Success);});
+		general.Add<SliderFloat>("FOV", &g_Fov, 0.0f, 120.0f);
+		Group& WeaponS = aim.AddGroup("Weapon Settings");
+		WeaponS.Add<Checkbox>("No Sway", &bNoSway);
+		WeaponS.Add<Checkbox>("No Recoil", &bNoRecoil);
 
 		Tab& visuals = m_form.AddTab(ICON_FA_EYE, "Visuals");
-		visuals.AddGroup("ESP").Add<Text>("nothing here yet");
-
-		//Tab& misc = m_form.AddTab("M", "Visuals");
+		Group& ESP = visuals.AddGroup("ESP");
+		ESP.Add<Checkbox>("Enable ESP",&bEsp );
+		ESP.Add<Checkbox>("Show Names", &bShowNames);
+		ESP.Add<Checkbox>("Show Distance", &bShowDistance);
+		
+		
+		//FOV.Add<RectFilled>();
+		Tab& misc = m_form.AddTab("M", "Misc");
 
 	}
 
@@ -192,58 +202,22 @@ bool Overlay::InitImGui() {
 void Overlay::CustomColors(ImGuiStyle* dst) {
 
 	ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
-	ImVec4* colors = style->Colors;
-	colors[ImGuiCol_Text] = ImColor(255, 255, 255);
-	colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-	colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_PopupBg] = ImColor(25, 25, 25, 225);
-	colors[ImGuiCol_BorderShadow] = ImColor(25, 25, 25, 225);
-	colors[ImGuiCol_FrameBg] = ImColor(24, 25, 27);
-	colors[ImGuiCol_FrameBgHovered] = ImColor(25, 25, 25, 225);
-	colors[ImGuiCol_FrameBgActive] = ImColor(155, 212, 90);
-	colors[ImGuiCol_TitleBg] = ImColor(25, 25, 25, 225);
-	colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
-	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 1.00f, 1.00f, 0.51f);
-	colors[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
-	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
-	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 0.80f);
-	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);
-	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-	colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-	colors[ImGuiCol_SliderGrab] = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
-	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.46f, 0.54f, 0.80f, 0.60f);
-	colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-	colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-	colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
-	colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
-	colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-	colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-	colors[ImGuiCol_Separator] = ImVec4(0.39f, 0.39f, 0.39f, 0.62f);
-	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.14f, 0.44f, 0.80f, 0.78f);
-	colors[ImGuiCol_SeparatorActive] = ImVec4(0.14f, 0.44f, 0.80f, 1.00f);
-	colors[ImGuiCol_ResizeGrip] = ImVec4(0.80f, 0.80f, 0.80f, 0.56f);
-	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-	colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.90f);
-	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
-	colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
-	colors[ImGuiCol_TabUnfocused] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
-	colors[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
-	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-	colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.45f, 0.00f, 1.00f);
-	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-	colors[ImGuiCol_DragDropTarget] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-	colors[ImGuiCol_NavHighlight] = colors[ImGuiCol_HeaderHovered];
-	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.70f, 0.70f, 0.70f, 0.70f);
-	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.20f);
-	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+	ImVec4* c = style->Colors;
+	c[ImGuiCol_Text] = ImVec4(0.86f, 0.86f, 0.88f, 1.00f);
+	c[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.55f, 1.00f);
+	c[ImGuiCol_WindowBg] = ImVec4(0, 0, 0, 0);
+	c[ImGuiCol_ChildBg] = ImVec4(0, 0, 0, 0);// cards show through keep 0
+	c[ImGuiCol_PopupBg] = ImVec4(0.10f, 0.10f, 0.12f, 0.98f); // maby for combo
 
-	style->FrameRounding = 6;
-	style->ChildRounding = 10;
-	style->PopupRounding = 5;
-
+	// --- spacing & rounding (shape stock layout + any remaining widgets) ---
+	style->WindowPadding = ImVec2(0, 0);   // load-bearing: step-2 coord alignment
+	style->ItemSpacing = ImVec2(10, 10);
+	style->ItemInnerSpacing = ImVec2(8, 6);
+	style->FramePadding = ImVec2(10, 6);
+	style->WindowRounding = 10.f;
+	style->ChildRounding = 10.f;
+	style->FrameRounding = 6.f;
+	style->PopupRounding = 5.f;
 }
 
 bool Overlay::InitDim() {
@@ -262,12 +236,6 @@ void Overlay::Draw() {
 	ImGui::NewFrame();
 
 	//ImGui::SetNextWindowPos(ImVec2(100, 100), ImGuiCond_Once);
-	static bool bNoRecoil = false;
-	static bool bNoSway = false;
-	static bool bAimBot = false;
-	static bool bHESP = false;
-	static bool bEsp = false;
-	static int MenuIndex = 0;
 
 	if (g_shutdown.exchange(false)) {
 		g_session.reset();   // joins the thread, best-effort /kill on the process
@@ -276,51 +244,7 @@ void Overlay::Draw() {
 	}
 
 	if (m_ShowMenu) {
-		//ImGui::ShowStyleEditor();
-		// Put this in it's own function, or else.
-		/*
-		ImGui::SetNextWindowSize(ImVec2(600, 400));
-		ImGui::Begin("Who Was In Paris",NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-		ImVec2 s = ImVec2(ImGui::GetWindowSize().x - ImGui::GetStyle().WindowPadding.x * 2, ImGui::GetWindowSize().y - ImGui::GetStyle().WindowPadding.y * 2);
-		ImVec2 p = ImVec2(ImGui::GetWindowPos().x + ImGui::GetStyle().WindowPadding.x, ImGui::GetWindowPos().y + ImGui::GetStyle().WindowPadding.y);
-
-		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + 780, p.y + 450), ImColor(29, 30, 34), 10);//bg
-		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + 780, p.y + 60), ImColor(19, 20, 22), ImDrawFlags_RoundCornersTop, 3);//upp
-		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y + 65), ImVec2(p.x + 65, p.y + 450), ImColor(19, 20, 22), ImDrawFlags_RoundCornersLeft, 4);//left
-		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x + 70, p.y + 65), ImVec2(p.x + 780, p.y + 450), ImColor(19, 20, 22), ImDrawFlags_RoundCornersLeft, 8);//right
-		/*
-		if (ImGui::Button("Visuals", ImVec2(80, 30))) {
-			MenuIndex = 0;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Aimbot", ImVec2(80, 30))) {
-			MenuIndex = 1;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Misc", ImVec2(80, 30))) {
-			MenuIndex = 2;
-		}
-
-		switch (MenuIndex)
-		{
-		case 0:
-			ImGui::Checkbox("Head Esp", &bHESP);
-			ImGui::Checkbox("ESP", &bEsp);
-			break;
-		case 1:
-			ImGui::Checkbox("AimBot", &bAimBot);
-			break;
-
-		case 2:
-			ImGui::Checkbox("No Sway", &bNoSway);
-			ImGui::Checkbox("No Recoil", &bNoRecoil);
-			break;
-		}
-		
-
-		ImGui::End();
-		*/
 		
 		m_form.Draw();
 	}
@@ -354,7 +278,7 @@ void Overlay::Draw() {
 			if (TargetEntity != g_AimSmoother.PrevTarget) {
 				g_AimSmoother.havePrev = false;   // new target, no velocity history
 				g_AimSmoother.yawVel = 0.f;       // also clear filter momentum so it
-				g_AimSmoother.pitchVel = 0.f;     // eases in cleanly instead of lurching
+				g_AimSmoother.pitchVel = 0.f;     // eases in cleanly instead of jumping
 			}
 			g_AimSmoother.PrevTarget = TargetEntity;
 			

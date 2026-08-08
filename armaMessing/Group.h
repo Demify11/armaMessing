@@ -7,6 +7,7 @@ class Group
 	std::vector<Element*> m_Elements;
     float m_Provisional = 200.0f;
     float m_Measured = 0.0f;
+    bool m_FullWidth = false;
 
 public:
 
@@ -17,13 +18,18 @@ public:
             delete el;
     }
 
-   // move: steal the buffer. vector's move leaves other.m_Elements EMPTY,
-// so the moved-from object's destructor deletes nothing — no double free.
+    Group& SetFullWidth(bool v = true) { m_FullWidth = v; return *this; }
+    bool   IsFullWidth() const { return m_FullWidth; }
+
+    // move: steal the buffer. vector's move leaves other.m_Elements EMPTY,
+    // so the moved-from object's destructor deletes nothing — no double free.
     Group(Group&& o) noexcept
         : m_Name(std::move(o.m_Name)),
         m_Elements(std::move(o.m_Elements)),
         m_Provisional(o.m_Provisional),
-        m_Measured(o.m_Measured) {}
+        m_Measured(o.m_Measured),
+        m_FullWidth(o.m_FullWidth)
+    {}
 
     Group& operator=(Group&& o) noexcept {
         if (this != &o) {
@@ -32,6 +38,7 @@ public:
             m_Elements = std::move(o.m_Elements);
             m_Provisional = o.m_Provisional;
             m_Measured = o.m_Measured;
+            m_FullWidth = o.m_FullWidth;
         }
         return *this;
     }

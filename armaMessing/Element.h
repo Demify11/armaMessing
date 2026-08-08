@@ -39,3 +39,9 @@ public:
         : m_Label(std::move(l)), m_Value(v), m_Min(mn), m_Max(mx) {}
     void Draw() override { UI::SliderFloat(m_Label.c_str(), m_Value, m_Min, m_Max); }
 };
+
+class RectFilled : public Element {
+public:
+    
+    void Draw() override { UI::Rectfilled("test", ImVec2(0, 0)); }
+};

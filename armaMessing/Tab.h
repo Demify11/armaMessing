@@ -14,6 +14,8 @@ public:
 	Tab(std::string icon, std::string name)
 		: m_Icon(std::move(icon)), m_Name(std::move(name)) {} //We can initialize stuff before main body
 
+	const std::string& Name() const { return m_Name; }
+
 	Group& AddGroup(std::string name);
 
 	void DrawPage();

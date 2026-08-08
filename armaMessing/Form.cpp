@@ -23,6 +23,8 @@ void Form::Draw()
     const ImVec2 sz = ImGui::GetWindowSize();
     const float  R = Layout::Rounding;
 
+    //dl->AddRectFilled(ImVec2(p.x - 6, p.y - 6), ImVec2(p.x + sz.x + 6, p.y + sz.y + 6), IM_COL32(0, 0, 0, 40), Layout::Rounding + 4);
+
     dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + sz.y), Palette::PanelBg, R);
 
     dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + Layout::HeaderH), Palette::HeaderBg, R, ImDrawFlags_RoundCornersTop);
@@ -32,6 +34,12 @@ void Form::Draw()
     // subtle depth hairlines
     dl->AddLine(ImVec2(p.x + Layout::SidebarW, p.y + Layout::HeaderH), ImVec2(p.x + Layout::SidebarW, p.y + sz.y), IM_COL32(0, 0, 0, 90));
     dl->AddLine(ImVec2(p.x + Layout::SidebarW, p.y + Layout::HeaderH), ImVec2(p.x + sz.x, p.y + Layout::HeaderH), IM_COL32(0, 0, 0, 90));
+
+    ImGui::PushFont(g_Fonts.Title);
+    ImGui::SetCursorPos(ImVec2(Layout::SidebarW + Layout::ContentPad,
+        (Layout::HeaderH - ImGui::GetFontSize()) * 0.5f));
+    ImGui::TextUnformatted("0Lab");
+    ImGui::PopFont();
 
     ImGui::PushFont(g_Fonts.Icons);
     {
@@ -63,5 +71,7 @@ void Form::Draw()
 
     ImGui::End();
     ImGui::PopStyleVar();
+
+    ImTricks::NotifyManager::HandleNotifies(ImGui::GetForegroundDrawList());
 }
 

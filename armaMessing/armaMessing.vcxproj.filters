@@ -120,6 +120,12 @@
     <ClCompile Include="Widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_tricks.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memold.h">
@@ -237,6 +243,9 @@
       <Filter>Fonts</Filter>
     </ClInclude>
     <ClInclude Include="Widgets.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_tricks.hpp">
       <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>

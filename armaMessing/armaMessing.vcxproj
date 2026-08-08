@@ -186,7 +186,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -201,7 +201,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;IMGUI_DEFINE_MATH_OPERATORS;%(PreprocessorDefinitions);IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -219,7 +219,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CURL_STATICLIB;NDEBUG;_CONSOLE;_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;NDEBUG;_CONSOLE;_DLL;%(PreprocessorDefinitions);IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>C:\dev\vcpkg\installed\x64-windows-static\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -245,7 +245,7 @@ secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CURL_STATICLIB;NDEBUG;_CONSOLE;_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;NDEBUG;_CONSOLE;_DLL;%(PreprocessorDefinitions);IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>C:\dev\vcpkg\installed\x64-windows-static\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -274,6 +274,7 @@ secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="Fonts.cpp" />
     <ClCompile Include="Form.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Group.cpp" />
     <ClCompile Include="Identity.cpp" />
     <ClCompile Include="imgui.cpp" />
@@ -282,6 +283,7 @@ secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="imgui_impl_dx11.cpp" />
     <ClCompile Include="imgui_impl_win32.cpp" />
     <ClCompile Include="imgui_tables.cpp" />
+    <ClCompile Include="imgui_tricks.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="Magazine.cpp" />
     <ClCompile Include="mem.cpp" />
@@ -318,6 +320,7 @@ secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="imgui_impl_dx11.h" />
     <ClInclude Include="imgui_impl_win32.h" />
     <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="imgui_tricks.hpp" />
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
